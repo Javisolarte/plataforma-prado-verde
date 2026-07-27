@@ -615,7 +615,10 @@ export class Dashboard implements OnInit {
   get filteredConjuntos() {
     let term = this.searchTerm().toLowerCase();
     let list = this.conjuntos();
-    if (this.user()?.rol === 'ADMINISTRADOR') {
+    // Si el SUPERUSUARIO está en modo administración, solo mostrar el conjunto que administra
+    if (this.managingConjuntoId()) {
+      list = list.filter(c => c.id === this.managingConjuntoId());
+    } else if (this.user()?.rol === 'ADMINISTRADOR') {
       list = list.filter(c => c.id === this.user()?.conjuntoId);
     }
     return term ? list.filter(c => c.nombre.toLowerCase().includes(term)) : list;
