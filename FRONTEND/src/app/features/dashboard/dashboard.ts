@@ -56,7 +56,10 @@ export class Dashboard implements OnInit {
     
     let updateReq;
     if (entityType === 'residente') {
-      updateReq = this.residenteService.update(id, { [field]: cell.value.toUpperCase() });
+      const payload: any = {};
+      payload[field] = cell.value.toUpperCase();
+      if (field === 'documento') payload['cedula'] = cell.value.toUpperCase();
+      updateReq = this.residenteService.update(id, payload);
     } else if (entityType === 'parqueadero') {
       updateReq = this.parqueaderoService.update(id, { [field]: cell.value.toUpperCase() });
     } else if (entityType === 'vehiculo') {
@@ -64,9 +67,15 @@ export class Dashboard implements OnInit {
     }
     
     if (updateReq) {
-      updateReq.subscribe(() => {
-        this.loadAllData();
-        this.editingCell.set(null);
+      updateReq.subscribe({
+        next: () => {
+          this.loadAllData();
+          this.editingCell.set(null);
+        },
+        error: (err) => {
+          alert('Error actualizando: ' + (err.error?.message || 'Error del servidor'));
+          this.editingCell.set(null);
+        }
       });
     }
   }
