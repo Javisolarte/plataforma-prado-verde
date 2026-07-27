@@ -89,9 +89,10 @@
 }
 
 .brand-text {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #047857;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 

@@ -9,50 +9,11 @@ export class SearchService {
     const term = query ? query.trim() : '';
     if (!term) return { apartamentos: [] };
 
-    const termLikeAnywhere = `%${term}%`;
+    const termLike = `%${term}%`;
     const numConjuntoId = conjuntoId ? Number(conjuntoId) : null;
+    const cFilter = numConjuntoId ? `AND t."conjuntoId" = ${numConjuntoId}` : '';
 
-    // Filtros de conjunto navegando por las relaciones
-    const cFilterA = numConjuntoId ? `AND t."conjuntoId" = ${numConjuntoId}` : '';
-    const cFilterR = numConjuntoId ? `AND r."conjuntoId" = ${numConjuntoId}` : '';
-    const cFilterP = numConjuntoId ? `AND (p."conjuntoId" = ${numConjuntoId} OR t."conjuntoId" = ${numConjuntoId})` : '';
-
-    // 1. Buscar IDs por Apartamento o Torre (ej: Apto 101, Torre 1, Torre A)
-    const qAptos = this.prisma.$queryRawUnsafe<any[]>(`
-      SELECT a.id FROM "Apartamento" a 
-      JOIN "Torre" t ON t.id = a."torreId"
-      WHERE (a.numero ILIKE $1 OR t.nombre ILIKE $1 OR (t.nombre || ' ' || a.numero) ILIKE $1) ${cFilterA} LIMIT 25;
-    `, termLikeAnywhere);
-
-    // 2. Buscar IDs por Residente (Nombre, Cédula/Documento, Teléfono)
-    const qRes = this.prisma.$queryRawUnsafe<any[]>(`
-      SELECT ra."apartamentoId" as id FROM "Residente" r
-      JOIN "ResidenteApartamento" ra ON ra."residenteId" = r.id
-      WHERE (r.nombre ILIKE $1 OR r.documento ILIKE $1 OR r.telefono ILIKE $1) ${cFilterR} LIMIT 25;
-    `, termLikeAnywhere);
-
-    // 3. Buscar IDs por Vehículo (Placa) o Parqueadero (Número exacto o parcial)
-    const qVeh = this.prisma.$queryRawUnsafe<any[]>(`
-      SELECT DISTINCT p."apartamentoId" as id FROM "Parqueadero" p
-      LEFT JOIN "Vehiculo" v ON v."parqueaderoId" = p.id
-      LEFT JOIN "Apartamento" a ON a.id = p."apartamentoId"
-      LEFT JOIN "Torre" t ON t.id = a."torreId"
-      WHERE (v.placa ILIKE $1 OR p.numero ILIKE $1 OR p.numero = $2) AND p."apartamentoId" IS NOT NULL ${cFilterP} LIMIT 25;
-    `, termLikeAnywhere, term);
-
-    const [aptos, res, vehs] = await Promise.all([qAptos, qRes, qVeh]);
-    
-    // Consolidar IDs únicos
-    const idSet = new Set<number>();
-    aptos.forEach(x => x?.id && idSet.add(x.id));
-    res.forEach(x => x?.id && idSet.add(x.id));
-    vehs.forEach(x => x?.id && idSet.add(x.id));
-
-    if (idSet.size === 0) return { apartamentos: [] };
-
-    const idsList = Array.from(idSet).join(',');
-
-    // Consultar el perfil unificado exacto para los apartamentos encontrados
+    // Una única consulta SQL ultra optimizada
     const perfiles = await this.prisma.$queryRawUnsafe<any[]>(`
       SELECT 
         a.id, a.numero,
@@ -75,9 +36,27 @@ export class SearchService {
         ), '[]'::json) as parqueaderos
       FROM "Apartamento" a
       JOIN "Torre" t ON t.id = a."torreId"
-      WHERE a.id IN (${idsList})
+      WHERE a.id IN (
+        SELECT DISTINCT a_sub.id FROM "Apartamento" a_sub
+        JOIN "Torre" t_sub ON t_sub.id = a_sub."torreId"
+        LEFT JOIN "ResidenteApartamento" ra_sub ON ra_sub."apartamentoId" = a_sub.id
+        LEFT JOIN "Residente" r_sub ON r_sub.id = ra_sub."residenteId"
+        LEFT JOIN "Parqueadero" p_sub ON p_sub."apartamentoId" = a_sub.id
+        LEFT JOIN "Vehiculo" v_sub ON v_sub."parqueaderoId" = p_sub.id
+        WHERE (
+          a_sub.numero ILIKE $1 
+          OR t_sub.nombre ILIKE $1 
+          OR (t_sub.nombre || ' ' || a_sub.numero) ILIKE $1
+          OR r_sub.nombre ILIKE $1 
+          OR r_sub.documento ILIKE $1 
+          OR r_sub.telefono ILIKE $1 
+          OR p_sub.numero ILIKE $1
+          OR v_sub.placa ILIKE $1
+        ) ${cFilter}
+        LIMIT 15
+      )
       ORDER BY t.nombre ASC, a.numero ASC
-    `);
+    `, termLike);
 
     return { apartamentos: perfiles };
   }
