@@ -116,6 +116,13 @@ export class Dashboard implements OnInit {
     });
   }
   
+  // Estado para colapsar/expandir barra lateral
+  sidebarCollapsed = signal<boolean>(false);
+
+  toggleSidebar() {
+    this.sidebarCollapsed.update(val => !val);
+  }
+
   // Data Signals
   conjuntos = signal<Conjunto[]>([]);
   usuarios = signal<User[]>([]);

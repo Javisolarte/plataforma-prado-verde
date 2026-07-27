@@ -1,6 +1,6 @@
 <div class="dashboard-layout">
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()">
     <div class="sidebar-header">
       <div class="logo-box">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" style="width: 100%; height: 100%;">
@@ -26,25 +26,61 @@
     <!-- SIDEBAR NAVIGATION -->
     <nav class="sidebar-nav">
       <ng-container *ngIf="user()?.rol === 'VIGILANTE'">
-        <a class="nav-item active" (click)="view = 'vigilante'">Control de Acceso</a>
+        <a class="nav-item active" (click)="view = 'vigilante'" title="Control de Acceso">
+          <span class="nav-icon">🔍</span>
+          <span class="nav-label">Control de Acceso</span>
+        </a>
       </ng-container>
 
       <ng-container *ngIf="user()?.rol === 'SUPERUSUARIO' && !managingConjuntoId()">
-        <a class="nav-item" [class.active]="view === 'dashboard'" (click)="view = 'dashboard'">Panel Principal</a>
-        <a class="nav-item" [class.active]="view === 'conjuntos'" (click)="view = 'conjuntos'">Gestión de Conjuntos</a>
-        <a class="nav-item" [class.active]="view === 'usuarios'" (click)="view = 'usuarios'">Gestión de Usuarios</a>
+        <a class="nav-item" [class.active]="view === 'dashboard'" (click)="view = 'dashboard'" title="Panel Principal">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Panel Principal</span>
+        </a>
+        <a class="nav-item" [class.active]="view === 'conjuntos'" (click)="view = 'conjuntos'" title="Gestión de Conjuntos">
+          <span class="nav-icon">🏢</span>
+          <span class="nav-label">Gestión de Conjuntos</span>
+        </a>
+        <a class="nav-item" [class.active]="view === 'usuarios'" (click)="view = 'usuarios'" title="Gestión de Usuarios">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Gestión de Usuarios</span>
+        </a>
       </ng-container>
 
       <!-- Menú Administrador -->
       <ng-container *ngIf="user()?.rol === 'ADMINISTRADOR' || (user()?.rol === 'SUPERUSUARIO' && managingConjuntoId())">
-        <a class="nav-item" [class.active]="view === 'dashboard'" (click)="view = 'dashboard'">Dashboard</a>
-        <a class="nav-item" [class.active]="view === 'conjuntos'" (click)="view = 'conjuntos'">Mi Conjunto</a>
-        <a class="nav-item" [class.active]="view === 'torres'" (click)="view = 'torres'">Torres</a>
-        <a class="nav-item" [class.active]="view === 'aptos'" (click)="view = 'aptos'">Apartamentos</a>
-        <a class="nav-item" [class.active]="view === 'parqueaderos'" (click)="view = 'parqueaderos'">Parqueaderos</a>
-        <a class="nav-item" [class.active]="view === 'residentes'" (click)="view = 'residentes'">Residentes</a>
-        <a class="nav-item" [class.active]="view === 'vehiculos'" (click)="view = 'vehiculos'">Vehículos</a>
-        <a class="nav-item" [class.active]="view === 'usuarios'" (click)="view = 'usuarios'">Usuarios</a>
+        <a class="nav-item" [class.active]="view === 'dashboard'" (click)="view = 'dashboard'" title="Dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" [class.active]="view === 'conjuntos'" (click)="view = 'conjuntos'" title="Mi Conjunto">
+          <span class="nav-icon">🏢</span>
+          <span class="nav-label">Mi Conjunto</span>
+        </a>
+        <a class="nav-item" [class.active]="view === 'torres'" (click)="view = 'torres'" title="Torres">
+          <span class="nav-icon">🏛️</span>
+          <span class="nav-label">Torres</span>
+        </a>
+        <a class="nav-item" [class.active]="view === 'aptos'" (click)="view = 'aptos'" title="Apartamentos">
+          <span class="nav-icon">🚪</span>
+          <span class="nav-label">Apartamentos</span>
+        </a>
+        <a class="nav-item" [class.active]="view === 'parqueaderos'" (click)="view = 'parqueaderos'" title="Parqueaderos">
+          <span class="nav-icon">🅿️</span>
+          <span class="nav-label">Parqueaderos</span>
+        </a>
+        <a class="nav-item" [class.active]="view === 'residentes'" (click)="view = 'residentes'" title="Residentes">
+          <span class="nav-icon">👨‍👩‍👧‍👦</span>
+          <span class="nav-label">Residentes</span>
+        </a>
+        <a class="nav-item" [class.active]="view === 'vehiculos'" (click)="view = 'vehiculos'" title="Vehículos">
+          <span class="nav-icon">🚗</span>
+          <span class="nav-label">Vehículos</span>
+        </a>
+        <a class="nav-item" [class.active]="view === 'usuarios'" (click)="view = 'usuarios'" title="Usuarios">
+          <span class="nav-icon">👤</span>
+          <span class="nav-label">Usuarios</span>
+        </a>
       </ng-container>
     </nav>
   </aside>
@@ -52,10 +88,19 @@
   <!-- Main Content -->
   <main class="main-content">
     <header class="topbar">
-      <div class="greeting">
-        <h2 *ngIf="user()?.rol !== 'VIGILANTE'">¡Hola, {{ user()?.nombre }}!</h2>
-        <h2 *ngIf="user()?.rol === 'VIGILANTE'">Control de Acceso</h2>
-        <span class="role-badge">Rol: <span class="badge bg-green-100 text-green-800">{{ user()?.rol }}</span></span>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button class="btn-toggle-sidebar" (click)="toggleSidebar()" title="Minimizar / Expandir menú">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <div class="greeting">
+          <h2 *ngIf="user()?.rol !== 'VIGILANTE'">¡Hola, {{ user()?.nombre }}!</h2>
+          <h2 *ngIf="user()?.rol === 'VIGILANTE'">Control de Acceso</h2>
+          <span class="role-badge">Rol: <span class="badge bg-green-100 text-green-800">{{ user()?.rol }}</span></span>
+        </div>
       </div>
       <div style="display: flex; gap: 1rem;">
         <button class="btn-secondary outline" *ngIf="managingConjuntoId()" (click)="exitManagementMode()">Cerrar Gestión</button>
