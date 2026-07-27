@@ -323,8 +323,14 @@ export class Dashboard implements OnInit {
           this.usuarioForm.patchValue(entity);
           this.usuarioForm.get('password')?.clearValidators();
         } else {
-          const defaultRol = this.user()?.rol === 'ADMINISTRADOR' ? 'VIGILANTE' : 'ADMINISTRADOR';
-          const defaultConj = this.user()?.rol === 'ADMINISTRADOR' ? this.user()?.conjuntoId : null;
+          let defaultRol = 'ADMINISTRADOR';
+          if (this.user()?.rol === 'SUPERUSUARIO' && !this.managingConjuntoId()) {
+            defaultRol = 'SUPERUSUARIO';
+          } else if (this.user()?.rol === 'ADMINISTRADOR') {
+            defaultRol = 'VIGILANTE';
+          }
+
+          const defaultConj = (this.user()?.rol === 'ADMINISTRADOR' || this.managingConjuntoId()) ? this.contextConjuntoId : null;
           this.usuarioForm.reset({ rol: defaultRol, conjuntoId: defaultConj });
           this.usuarioForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
         }
@@ -444,13 +450,15 @@ export class Dashboard implements OnInit {
     const formData = { ...this.usuarioForm.value };
     if (!formData.password) delete formData.password;
     
-    // Forzar conjunto si no es superusuario o si gestiona un conjunto en particular
-    if (this.user()?.rol !== 'SUPERUSUARIO' || this.managingConjuntoId()) {
-      formData.conjuntoId = this.contextConjuntoId;
-      if (formData.rol === 'SUPERUSUARIO') {
+    // Si el rol es SUPERUSUARIO, conjuntoId debe ser nulo
+    if (formData.rol === 'SUPERUSUARIO') {
+      if (this.user()?.rol !== 'SUPERUSUARIO' || this.managingConjuntoId()) {
         alert('Acceso denegado: Un Administrador no puede crear o asignar el rol Superusuario.');
         return;
       }
+      formData.conjuntoId = null;
+    } else if (this.user()?.rol !== 'SUPERUSUARIO' || this.managingConjuntoId()) {
+      formData.conjuntoId = this.contextConjuntoId;
     } else if (formData.conjuntoId) {
       formData.conjuntoId = Number(formData.conjuntoId);
     }
@@ -458,7 +466,7 @@ export class Dashboard implements OnInit {
     const req$ = this.editingId ? this.usuarioService.update(this.editingId, formData) : this.usuarioService.create(formData);
     req$.subscribe({
       next: () => { this.isUsuarioModalOpen = false; this.loadAllData(); },
-      error: (err) => alert(err.error?.message || 'Error')
+      error: (err) => alert(err.error?.message || 'Error al guardar el usuario')
     });
   }
   
