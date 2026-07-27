@@ -10,7 +10,7 @@ RUN apk add --no-cache openssl
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copiar el resto del código y generar cliente de Prisma + Build
 COPY . .

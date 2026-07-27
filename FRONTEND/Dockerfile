@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copiar manifiestos e instalar dependencias
 COPY package*.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copiar el código fuente y construir para producción
 COPY . .
