@@ -419,8 +419,23 @@
 }
 
 .sidebar-footer {
-  padding: 1.5rem 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.85rem 0.65rem;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.logout-nav-item {
+  padding: 0.55rem 0.65rem !important;
+  gap: 0.5rem !important;
+  font-size: 0.85rem !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.logout-nav-item .nav-label {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  font-weight: 700;
 }
 
 .btn-logout {
@@ -708,30 +723,26 @@
 
 .excel-table {
   width: 100%;
-  min-width: 820px;
+  min-width: 900px;
 }
 
-.modern-table th {
-  text-align: left;
-  padding: 0.85rem 1.25rem;
-  background-color: #F9FAFB;
-  color: #4B5563;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
+.excel-table th {
+  padding: 0.7rem 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
 }
 
-.modern-table th:first-child { border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; }
-.modern-table th:last-child { border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
+.excel-table td {
+  padding: 0.45rem 0.5rem;
+  font-size: 0.8rem;
+}
 
-.modern-table td {
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #F3F4F6;
-  color: #1F2937;
-  vertical-align: middle;
-  font-size: 0.85rem;
+.excel-table th:last-child,
+.excel-table td:last-child {
+  width: 80px;
+  min-width: 80px;
+  text-align: center;
+  padding-right: 0.5rem;
 }
 
 .modern-table tbody tr {
