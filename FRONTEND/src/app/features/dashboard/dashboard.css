@@ -68,32 +68,69 @@
 
 .sidebar-header {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.75rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #F3F4F6;
-  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 1rem;
 }
 
-.logo-box {
-  width: 38px;
-  height: 38px;
-  min-width: 38px;
+.btn-toggle-sidebar-nav {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
-  background: white;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
 }
 
-.brand-text {
-  font-size: 1.05rem;
+.btn-toggle-sidebar-nav:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.sidebar-user-profile {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.user-greeting-text {
+  font-size: 0.95rem;
   font-weight: 800;
   color: #FFFFFF;
-  letter-spacing: 0.02em;
+  margin-bottom: 0.25rem;
   white-space: nowrap;
+}
+
+.role-badge-pill {
+  font-size: 0.75rem;
+  color: #D1FAE5;
+  white-space: nowrap;
+}
+
+.badge-role {
+  background: #10B981;
+  color: #FFFFFF;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 0.7rem;
+  margin-left: 4px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .dashboard-layout {
