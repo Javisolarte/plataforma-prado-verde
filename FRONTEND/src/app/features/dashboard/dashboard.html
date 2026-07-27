@@ -276,108 +276,110 @@
                  <button class="btn-primary" style="background: #059669;" (click)="fileInput.click()" title="Subir archivo Excel y procesar datos">Subir Excel</button>
                </div>
            </div>
-           <table class="modern-table excel-table">
-             <thead>
-               <tr><th>APTO</th><th>TORRE</th><th>RESIDENTE</th><th>PARQUEADERO</th><th>VEHÍCULOS</th><th>ACCIONES RÁPIDAS</th></tr>
-             </thead>
-             <tbody>
-               <tr *ngFor="let row of masterData()">
-                 <td><strong>{{ row.aptoNumero }}</strong></td>
-                 <td>{{ row.torreNombre }}</td>
-                   <td>
-                     <div *ngFor="let res of row.vinculados" style="display: flex; flex-direction: column; margin-bottom: 8px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                          <ng-container *ngIf="editingCell()?.id === 'res-'+res.id && editingCell()?.field === 'nombre'; else viewResName">
-                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'nombre')" (keyup.enter)="saveEdit('residente', res.id, 'nombre')" class="inline-edit-input" autofocus>
-                          </ng-container>
-                          <ng-template #viewResName>
-                            <span style="display: flex; align-items: center; gap: 6px;">
-                              <span class="editable-text" (click)="startEdit('res-'+res.id, 'nombre', res.nombre)">{{ res.nombre }} <span class="edit-icon">✎</span></span>
-                              <span class="badge bg-green-100 text-green-800" style="font-size: 0.6rem; border: 1px solid #A7F3D0; padding: 1px 5px; border-radius: 4px;">{{ res.tipo || 'PROPIETARIO' }}</span>
-                            </span>
-                          </ng-template>
-                        </div>
-                        <div style="font-size: 0.75rem; color: #6B7280; display: flex; gap: 4px; align-items: center; margin-top: 2px;">
-                          C.C: 
-                          <ng-container *ngIf="editingCell()?.id === 'res-'+res.id && editingCell()?.field === 'documento'; else viewResDoc">
-                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'documento')" (keyup.enter)="saveEdit('residente', res.id, 'documento')" class="inline-edit-input small">
-                          </ng-container>
-                          <ng-template #viewResDoc>
-                            <span class="editable-text small" (click)="startEdit('res-'+res.id, 'documento', res.documento || '')">{{ res.documento || 'No asig' }}</span>
-                          </ng-template>
-                          | Tel: 
-                          <ng-container *ngIf="editingCell()?.id === 'res-'+res.id && editingCell()?.field === 'telefono'; else viewResTel">
-                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'telefono')" (keyup.enter)="saveEdit('residente', res.id, 'telefono')" class="inline-edit-input small">
-                          </ng-container>
-                          <ng-template #viewResTel>
-                            <span class="editable-text small" (click)="startEdit('res-'+res.id, 'telefono', res.telefono || '')">{{ res.telefono || 'No asig' }}</span>
-                          </ng-template>
-                        </div>
-                     </div>
-                     <div *ngIf="row.vinculados.length === 0" style="color: #9CA3AF; font-weight: 500;">Desocupado</div>
-                   </td>
-                   <td>
-                     <div *ngFor="let p of row.parqs" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                        <span style="display: flex; align-items: center; gap: 0.5rem;">
-                          <ng-container *ngIf="editingCell()?.id === 'parq-'+p.id && editingCell()?.field === 'numero'; else viewParq">
-                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('parqueadero', p.id, 'numero')" (keyup.enter)="saveEdit('parqueadero', p.id, 'numero')" class="inline-edit-input" autofocus>
-                          </ng-container>
-                          <ng-template #viewParq>
-                            <span class="editable-text" (click)="startEdit('parq-'+p.id, 'numero', p.numero)">{{ p.numero }} <span class="edit-icon">✎</span></span>
-                          </ng-template>
-                          <span class="badge bg-green-100 text-green-800" style="font-size: 0.65rem; border: 1px solid #A7F3D0; padding: 2px 6px;">{{ p.tipo }}</span>
-                        </span>
-                     </div>
-                     <div *ngIf="row.parqs.length === 0" style="color: #D1D5DB; font-weight: 500;">No Asignado</div>
-                   </td>
-                   <td>
-                     <div *ngFor="let v of row.vehs" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                        <span style="display: flex; align-items: center; gap: 0.25rem;">
-                          <ng-container *ngIf="editingCell()?.id === 'veh-'+v.id && editingCell()?.field === 'placa'; else viewVeh">
-                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('vehiculo', v.id, 'placa')" (keyup.enter)="saveEdit('vehiculo', v.id, 'placa')" class="inline-edit-input" autofocus>
-                          </ng-container>
-                          <ng-template #viewVeh>
-                            <span class="editable-text" style="font-weight: 700;" (click)="startEdit('veh-'+v.id, 'placa', v.placa)">{{ v.placa }} <span class="edit-icon">✎</span></span>
-                          </ng-template>
-                          <span style="font-size: 0.7rem; color: #6B7280;">({{ v.tipo || 'CARRO' }})</span>
-                        </span>
-                     </div>
-                     <div *ngIf="row.vehs.length === 0" style="color: #D1D5DB; font-weight: 500;">Ninguno</div>
-                   </td>
-                   <td style="position: relative; text-align: center;">
-                    <div class="row-dropdown-container">
-                      <button class="btn-dots-menu" (click)="toggleRowDropdown(row.aptoId, $event)" title="Acciones Rápidas">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
-                        </svg>
-                      </button>
+           <div class="table-responsive-wrapper">
+             <table class="modern-table excel-table">
+               <thead>
+                 <tr><th>APTO</th><th>TORRE</th><th>RESIDENTE</th><th>PARQUEADERO</th><th>VEHÍCULOS</th><th>ACCIONES RÁPIDAS</th></tr>
+               </thead>
+               <tbody>
+                 <tr *ngFor="let row of masterData()">
+                   <td><strong>{{ row.aptoNumero }}</strong></td>
+                   <td>{{ row.torreNombre }}</td>
+                     <td>
+                       <div *ngFor="let res of row.vinculados" style="display: flex; flex-direction: column; margin-bottom: 8px;">
+                          <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <ng-container *ngIf="editingCell()?.id === 'res-'+res.id && editingCell()?.field === 'nombre'; else viewResName">
+                              <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'nombre')" (keyup.enter)="saveEdit('residente', res.id, 'nombre')" class="inline-edit-input" autofocus>
+                            </ng-container>
+                            <ng-template #viewResName>
+                              <span style="display: flex; align-items: center; gap: 6px;">
+                                <span class="editable-text" (click)="startEdit('res-'+res.id, 'nombre', res.nombre)">{{ res.nombre }} <span class="edit-icon">✎</span></span>
+                                <span class="badge bg-green-100 text-green-800" style="font-size: 0.6rem; border: 1px solid #A7F3D0; padding: 1px 5px; border-radius: 4px;">{{ res.tipo || 'PROPIETARIO' }}</span>
+                              </span>
+                            </ng-template>
+                          </div>
+                          <div style="font-size: 0.75rem; color: #6B7280; display: flex; gap: 4px; align-items: center; margin-top: 2px;">
+                            C.C: 
+                            <ng-container *ngIf="editingCell()?.id === 'res-'+res.id && editingCell()?.field === 'documento'; else viewResDoc">
+                              <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'documento')" (keyup.enter)="saveEdit('residente', res.id, 'documento')" class="inline-edit-input small">
+                            </ng-container>
+                            <ng-template #viewResDoc>
+                              <span class="editable-text small" (click)="startEdit('res-'+res.id, 'documento', res.documento || '')">{{ res.documento || 'No asig' }}</span>
+                            </ng-template>
+                            | Tel: 
+                            <ng-container *ngIf="editingCell()?.id === 'res-'+res.id && editingCell()?.field === 'telefono'; else viewResTel">
+                              <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'telefono')" (keyup.enter)="saveEdit('residente', res.id, 'telefono')" class="inline-edit-input small">
+                            </ng-container>
+                            <ng-template #viewResTel>
+                              <span class="editable-text small" (click)="startEdit('res-'+res.id, 'telefono', res.telefono || '')">{{ res.telefono || 'No asig' }}</span>
+                            </ng-template>
+                          </div>
+                       </div>
+                       <div *ngIf="row.vinculados.length === 0" style="color: #9CA3AF; font-weight: 500;">Desocupado</div>
+                     </td>
+                     <td>
+                       <div *ngFor="let p of row.parqs" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                          <span style="display: flex; align-items: center; gap: 0.5rem;">
+                            <ng-container *ngIf="editingCell()?.id === 'parq-'+p.id && editingCell()?.field === 'numero'; else viewParq">
+                              <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('parqueadero', p.id, 'numero')" (keyup.enter)="saveEdit('parqueadero', p.id, 'numero')" class="inline-edit-input" autofocus>
+                            </ng-container>
+                            <ng-template #viewParq>
+                              <span class="editable-text" (click)="startEdit('parq-'+p.id, 'numero', p.numero)">{{ p.numero }} <span class="edit-icon">✎</span></span>
+                            </ng-template>
+                            <span class="badge bg-green-100 text-green-800" style="font-size: 0.65rem; border: 1px solid #A7F3D0; padding: 2px 6px;">{{ p.tipo }}</span>
+                          </span>
+                       </div>
+                       <div *ngIf="row.parqs.length === 0" style="color: #D1D5DB; font-weight: 500;">No Asignado</div>
+                     </td>
+                     <td>
+                       <div *ngFor="let v of row.vehs" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                          <span style="display: flex; align-items: center; gap: 0.25rem;">
+                            <ng-container *ngIf="editingCell()?.id === 'veh-'+v.id && editingCell()?.field === 'placa'; else viewVeh">
+                              <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('vehiculo', v.id, 'placa')" (keyup.enter)="saveEdit('vehiculo', v.id, 'placa')" class="inline-edit-input" autofocus>
+                            </ng-container>
+                            <ng-template #viewVeh>
+                              <span class="editable-text" style="font-weight: 700;" (click)="startEdit('veh-'+v.id, 'placa', v.placa)">{{ v.placa }} <span class="edit-icon">✎</span></span>
+                            </ng-template>
+                            <span style="font-size: 0.7rem; color: #6B7280;">({{ v.tipo || 'CARRO' }})</span>
+                          </span>
+                       </div>
+                       <div *ngIf="row.vehs.length === 0" style="color: #D1D5DB; font-weight: 500;">Ninguno</div>
+                     </td>
+                     <td style="position: relative; text-align: center;">
+                      <div class="row-dropdown-container">
+                        <button class="btn-dots-menu" (click)="toggleRowDropdown(row.aptoId, $event)" title="Acciones Rápidas">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                          </svg>
+                        </button>
 
-                      <div class="dots-dropdown-menu" *ngIf="activeDropdownAptoId() === row.aptoId">
-                        <div class="dropdown-header">Acciones Apto {{ row.aptoNumero }}</div>
-                        <button class="dropdown-item" (click)="openModal('apto', row.aptoObj)">
-                          <span class="icon">🏢</span> Editar Apto
-                        </button>
-                        <button class="dropdown-item" *ngIf="row.resObj" (click)="openModal('residente', row.resObj)">
-                          <span class="icon">👤</span> Editar Residente
-                        </button>
-                        <button class="dropdown-item" *ngIf="!row.resObj" (click)="openResidenteModalForApto(row.aptoId)">
-                          <span class="icon">👤</span> + Agregar Residente
-                        </button>
-                        <button class="dropdown-item" (click)="openVehiculoModalForApto(row.aptoId)">
-                          <span class="icon">🚗</span> + Vincular Vehículo
-                        </button>
-                        <button class="dropdown-item" *ngIf="row.parqObj" (click)="openModal('parqueadero', row.parqObj)">
-                          <span class="icon">🅿️</span> Editar Parqueadero
-                        </button>
-                        <button class="dropdown-item" *ngIf="!row.parqObj" (click)="openParqueaderoModalForApto(row.aptoId)">
-                          <span class="icon">🅿️</span> + Asignar Parqueadero
-                        </button>
+                        <div class="dots-dropdown-menu" *ngIf="activeDropdownAptoId() === row.aptoId">
+                          <div class="dropdown-header">Acciones Apto {{ row.aptoNumero }}</div>
+                          <button class="dropdown-item" (click)="openModal('apto', row.aptoObj)">
+                            <span class="icon">🏢</span> Editar Apto
+                          </button>
+                          <button class="dropdown-item" *ngIf="row.resObj" (click)="openModal('residente', row.resObj)">
+                            <span class="icon">👤</span> Editar Residente
+                          </button>
+                          <button class="dropdown-item" *ngIf="!row.resObj" (click)="openResidenteModalForApto(row.aptoId)">
+                            <span class="icon">👤</span> + Agregar Residente
+                          </button>
+                          <button class="dropdown-item" (click)="openVehiculoModalForApto(row.aptoId)">
+                            <span class="icon">🚗</span> + Vincular Vehículo
+                          </button>
+                          <button class="dropdown-item" *ngIf="row.parqObj" (click)="openModal('parqueadero', row.parqObj)">
+                            <span class="icon">🅿️</span> Editar Parqueadero
+                          </button>
+                          <button class="dropdown-item" *ngIf="!row.parqObj" (click)="openParqueaderoModalForApto(row.aptoId)">
+                            <span class="icon">🅿️</span> + Asignar Parqueadero
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-               </tr>
-             </tbody>
-           </table>
+                    </td>
+                 </tr>
+               </tbody>
+             </table>
+           </div>
         </div>
       </ng-container>
 
@@ -391,23 +393,25 @@
               <button class="btn-primary" (click)="openModal('torre')">+ Nueva Torre</button>
             </div>
           </div>
-          <table class="modern-table">
-            <thead>
-              <tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let t of filteredTorres">
-                <td>{{ t.id }}</td>
-                <td><strong>{{ t.nombre }}</strong></td>
-                <td>
-                  <div class="table-actions">
-                    <button class="btn-action edit" (click)="openModal('torre', t)">Editar</button>
-                    <button class="btn-action delete" (click)="deleteTorre(t.id)">Eliminar</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-responsive-wrapper">
+            <table class="modern-table">
+              <thead>
+                <tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of filteredTorres">
+                  <td>{{ t.id }}</td>
+                  <td><strong>{{ t.nombre }}</strong></td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-action edit" (click)="openModal('torre', t)">Editar</button>
+                      <button class="btn-action delete" (click)="deleteTorre(t.id)">Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </ng-container>
 
@@ -420,23 +424,25 @@
               <button class="btn-primary" (click)="openModal('apto')">+ Nuevo Apartamento</button>
             </div>
           </div>
-          <table class="modern-table">
-            <thead>
-              <tr><th>Número</th><th>Torre</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let a of filteredAptos">
-                <td><strong>{{ a.numero }}</strong></td>
-                <td>{{ getTorreName(a.torreId) }}</td>
-                <td>
-                  <div class="table-actions">
-                    <button class="btn-action edit" (click)="openModal('apto', a)">Editar</button>
-                    <button class="btn-action delete" (click)="deleteApto(a.id)">Eliminar</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-responsive-wrapper">
+            <table class="modern-table">
+              <thead>
+                <tr><th>Número</th><th>Torre</th><th>Acciones</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of filteredAptos">
+                  <td><strong>{{ a.numero }}</strong></td>
+                  <td>{{ getTorreName(a.torreId) }}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-action edit" (click)="openModal('apto', a)">Editar</button>
+                      <button class="btn-action delete" (click)="deleteApto(a.id)">Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </ng-container>
 
@@ -449,24 +455,26 @@
               <button class="btn-primary" (click)="openModal('parqueadero')">+ Nuevo Parqueadero</button>
             </div>
           </div>
-          <table class="modern-table">
-            <thead>
-              <tr><th>Número</th><th>Tipo</th><th>Apartamento Vinculado</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let p of filteredParqueaderos">
-                <td><strong>#{{ p.numero }}</strong></td>
-                <td><span class="badge bg-gray-100 text-gray-800">{{ p.tipo }}</span></td>
-                <td>{{ getAptoName(p.apartamentoId) }}</td>
-                <td>
-                  <div class="table-actions">
-                    <button class="btn-action edit" (click)="openModal('parqueadero', p)">Editar</button>
-                    <button class="btn-action delete" (click)="deleteParqueadero(p.id)">Eliminar</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-responsive-wrapper">
+            <table class="modern-table">
+              <thead>
+                <tr><th>Número</th><th>Tipo</th><th>Apartamento Vinculado</th><th>Acciones</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of filteredParqueaderos">
+                  <td><strong>#{{ p.numero }}</strong></td>
+                  <td><span class="badge bg-gray-100 text-gray-800">{{ p.tipo }}</span></td>
+                  <td>{{ getAptoName(p.apartamentoId) }}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-action edit" (click)="openModal('parqueadero', p)">Editar</button>
+                      <button class="btn-action delete" (click)="deleteParqueadero(p.id)">Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </ng-container>
 
@@ -479,32 +487,34 @@
               <button class="btn-primary" (click)="openModal('usuario')">+ Nuevo Usuario</button>
             </div>
           </div>
-          <table class="modern-table">
-            <thead>
-              <tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let u of filteredUsuarios">
-                <td><strong>{{ u.nombre }}</strong></td>
-                <td>{{ u.email }}</td>
-                <td>
-                  <span class="badge" [ngClass]="{
-                    'bg-purple-100 text-purple-800': u.rol === 'SUPERUSUARIO',
-                    'bg-blue-100 text-blue-800': u.rol === 'ADMINISTRADOR',
-                    'bg-green-100 text-green-800': u.rol === 'VIGILANTE',
-                    'bg-gray-100 text-gray-800': u.rol === 'RESIDENTE'
-                  }">{{ u.rol }}</span>
-                </td>
-                <td>
-                  <div class="table-actions" *ngIf="u.rol !== 'SUPERUSUARIO' || user()?.rol === 'SUPERUSUARIO'">
-                    <button class="btn-action edit" (click)="openModal('usuario', u)">Editar</button>
-                    <button class="btn-action delete" (click)="deleteUsuario(u.id)">Eliminar</button>
-                  </div>
-                  <span *ngIf="u.rol === 'SUPERUSUARIO' && user()?.rol !== 'SUPERUSUARIO'" style="color: #9CA3AF; font-size: 0.85rem;">Protegido</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-responsive-wrapper">
+            <table class="modern-table">
+              <thead>
+                <tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let u of filteredUsuarios">
+                  <td><strong>{{ u.nombre }}</strong></td>
+                  <td>{{ u.email }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'bg-purple-100 text-purple-800': u.rol === 'SUPERUSUARIO',
+                      'bg-blue-100 text-blue-800': u.rol === 'ADMINISTRADOR',
+                      'bg-green-100 text-green-800': u.rol === 'VIGILANTE',
+                      'bg-gray-100 text-gray-800': u.rol === 'RESIDENTE'
+                    }">{{ u.rol }}</span>
+                  </td>
+                  <td>
+                    <div class="table-actions" *ngIf="u.rol !== 'SUPERUSUARIO' || user()?.rol === 'SUPERUSUARIO'">
+                      <button class="btn-action edit" (click)="openModal('usuario', u)">Editar</button>
+                      <button class="btn-action delete" (click)="deleteUsuario(u.id)">Eliminar</button>
+                    </div>
+                    <span *ngIf="u.rol === 'SUPERUSUARIO' && user()?.rol !== 'SUPERUSUARIO'" style="color: #9CA3AF; font-size: 0.85rem;">Protegido</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </ng-container>
 
@@ -517,44 +527,46 @@
               <button class="btn-primary" *ngIf="user()?.rol === 'SUPERUSUARIO'" (click)="openModal('conjunto')">+ Nuevo Conjunto</button>
             </div>
           </div>
-          <table class="glass-table" style="width: 100%;">
-            <thead>
-              <tr>
-                 <th>Conjunto</th>
-                 <th>Ubicación</th>
-                 <th>Contacto</th>
-                 <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let c of filteredConjuntos">
-                <td>
-                  <div class="conjunto-cell">
-                    <div>
-                      <div class="conjunto-name">{{ c.nombre }}</div>
-                      <div class="conjunto-id">ID: {{ c.id }}</div>
+          <div class="table-responsive-wrapper">
+            <table class="glass-table" style="width: 100%;">
+              <thead>
+                <tr>
+                   <th>Conjunto</th>
+                   <th>Ubicación</th>
+                   <th>Contacto</th>
+                   <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of filteredConjuntos">
+                  <td>
+                    <div class="conjunto-cell">
+                      <div>
+                        <div class="conjunto-name">{{ c.nombre }}</div>
+                        <div class="conjunto-id">ID: {{ c.id }}</div>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="location-text">{{ c.direccion || 'Sin dirección' }}</div>
-                </td>
-                <td>
-                  <div class="contact-info">
-                    <div class="contact-name">{{ c.contacto || 'No registrado' }}</div>
-                    <div class="contact-phone" *ngIf="c.telefono">{{ c.telefono }}</div>
-                  </div>
-                </td>
-                <td>
-                  <div class="table-actions">
-                    <button class="btn-action primary" *ngIf="user()?.rol === 'SUPERUSUARIO'" (click)="manageConjunto(c.id)" style="background-color: #ECFDF5; color: #059669; font-weight: bold; border-radius: 8px;">Administrar</button>
-                    <button class="btn-action edit" (click)="openModal('conjunto', c)" style="border-radius: 8px;">Editar</button>
-                    <button class="btn-action delete" *ngIf="user()?.rol === 'SUPERUSUARIO'" (click)="deleteConjunto(c.id)" style="border-radius: 8px;">Eliminar</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  </td>
+                  <td>
+                    <div class="location-text">{{ c.direccion || 'Sin dirección' }}</div>
+                  </td>
+                  <td>
+                    <div class="contact-info">
+                      <div class="contact-name">{{ c.contacto || 'No registrado' }}</div>
+                      <div class="contact-phone" *ngIf="c.telefono">{{ c.telefono }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-action primary" *ngIf="user()?.rol === 'SUPERUSUARIO'" (click)="manageConjunto(c.id)" style="background-color: #ECFDF5; color: #059669; font-weight: bold; border-radius: 8px;">Administrar</button>
+                      <button class="btn-action edit" (click)="openModal('conjunto', c)" style="border-radius: 8px;">Editar</button>
+                      <button class="btn-action delete" *ngIf="user()?.rol === 'SUPERUSUARIO'" (click)="deleteConjunto(c.id)" style="border-radius: 8px;">Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </ng-container>
 
@@ -567,25 +579,27 @@
               <button class="btn-primary" (click)="openModal('vehiculo')">+ Nuevo Vehículo</button>
             </div>
           </div>
-          <table class="modern-table">
-            <thead>
-              <tr><th>Placa</th><th>Tipo</th><th>Marca / Color</th><th>Parqueadero</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let veh of filteredVehiculos">
-                <td><strong>{{ veh.placa }}</strong></td>
-                <td><span class="badge bg-gray-100 text-gray-800">{{ veh.tipo }}</span></td>
-                <td>{{ veh.marca || 'N/A' }} / {{ veh.color || 'N/A' }}</td>
-                <td>#{{ veh.parqueadero?.numero }}</td>
-                <td>
-                  <div class="table-actions">
-                    <button class="btn-action edit" (click)="openModal('vehiculo', veh)">Editar</button>
-                    <button class="btn-action delete" (click)="deleteVehiculo(veh.id)">Eliminar</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-responsive-wrapper">
+            <table class="modern-table">
+              <thead>
+                <tr><th>Placa</th><th>Tipo</th><th>Marca / Color</th><th>Parqueadero</th><th>Acciones</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let veh of filteredVehiculos">
+                  <td><strong>{{ veh.placa }}</strong></td>
+                  <td><span class="badge bg-gray-100 text-gray-800">{{ veh.tipo }}</span></td>
+                  <td>{{ veh.marca || 'N/A' }} / {{ veh.color || 'N/A' }}</td>
+                  <td>#{{ veh.parqueadero?.numero }}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-action edit" (click)="openModal('vehiculo', veh)">Editar</button>
+                      <button class="btn-action delete" (click)="deleteVehiculo(veh.id)">Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </ng-container>
 
@@ -598,31 +612,33 @@
               <button class="btn-primary" (click)="openModal('residente')">+ Nuevo Residente</button>
             </div>
           </div>
-          <table class="modern-table">
-            <thead>
-              <tr><th>Nombre</th><th>Cédula</th><th>Tipo</th><th>Contacto</th><th>Ubicación</th><th>Acciones</th></tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let res of filteredResidentes">
-                <td>
-                  <div style="font-weight: 600;">{{ res.nombre }}</div>
-                </td>
-                <td><span class="badge bg-blue-100 text-blue-800" style="font-size: 0.75rem;">{{ res.documento || res.cedula || 'N/A' }}</span></td>
-                <td><span class="badge bg-green-100 text-green-800" style="font-size: 0.75rem;">{{ res.apartamentos?.[0]?.tipo || 'PROPIETARIO' }}</span></td>
-                <td>{{ res.telefono || 'N/A' }}</td>
-                <td>
-                  <div *ngFor="let a of res.apartamentos">T: {{ a.apartamento?.torre?.nombre }}, Apto: {{ a.apartamento?.numero }}</div>
-                  <div *ngIf="!res.apartamentos || res.apartamentos.length === 0" style="color: #9CA3AF; font-size: 0.8rem;">Sin Apto</div>
-                </td>
-                <td>
-                  <div class="table-actions">
-                    <button class="btn-action edit" (click)="openModal('residente', res)">Editar</button>
-                    <button class="btn-action delete" (click)="deleteResidente(res.id)">Eliminar</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-responsive-wrapper">
+            <table class="modern-table">
+              <thead>
+                <tr><th>Nombre</th><th>Cédula</th><th>Tipo</th><th>Contacto</th><th>Ubicación</th><th>Acciones</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let res of filteredResidentes">
+                  <td>
+                    <div style="font-weight: 600;">{{ res.nombre }}</div>
+                  </td>
+                  <td><span class="badge bg-blue-100 text-blue-800" style="font-size: 0.75rem;">{{ res.documento || res.cedula || 'N/A' }}</span></td>
+                  <td><span class="badge bg-green-100 text-green-800" style="font-size: 0.75rem;">{{ res.apartamentos?.[0]?.tipo || 'PROPIETARIO' }}</span></td>
+                  <td>{{ res.telefono || 'N/A' }}</td>
+                  <td>
+                    <div *ngFor="let a of res.apartamentos">T: {{ a.apartamento?.torre?.nombre }}, Apto: {{ a.apartamento?.numero }}</div>
+                    <div *ngIf="!res.apartamentos || res.apartamentos.length === 0" style="color: #9CA3AF; font-size: 0.8rem;">Sin Apto</div>
+                  </td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-action edit" (click)="openModal('residente', res)">Editar</button>
+                      <button class="btn-action delete" (click)="deleteResidente(res.id)">Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </ng-container>
       

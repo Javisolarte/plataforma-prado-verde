@@ -601,41 +601,92 @@
   color: #10B981;
 }
 
-/* ESTILOS DEL CRUD DE CONJUNTOS */
+/* ESTILOS DEL CRUD DE CONJUNTOS Y RESPONSIVIDAD DE TABLAS */
 .crud-container {
-  padding: 2rem;
+  padding: 1.5rem;
   background-color: white;
-  border-radius: 1.5rem;
+  border-radius: 1.25rem;
   box-shadow: 0 4px 20px rgba(0,0,0,0.03);
   border: 1px solid rgba(0,0,0,0.05);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .crud-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid #F3F4F6;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .crud-header h2 {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: #111827;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.header-actions .search-input {
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.6rem;
+  outline: none;
+  transition: all 0.2s;
+  min-width: 180px;
+}
+
+.header-actions .search-input:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 0.5rem;
+  border-radius: 0.75rem;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-thumb {
+  background-color: #D1D5DB;
+  border-radius: 3px;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-track {
+  background-color: #F3F4F6;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.65rem 1.25rem;
   border-radius: 0.75rem;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+  white-space: nowrap;
 }
 
 .btn-primary:hover {
@@ -645,30 +696,42 @@
 
 .modern-table {
   width: 100%;
+  min-width: 680px;
   border-collapse: separate;
   border-spacing: 0;
 }
 
+.glass-table {
+  width: 100%;
+  min-width: 650px;
+}
+
+.excel-table {
+  width: 100%;
+  min-width: 820px;
+}
+
 .modern-table th {
   text-align: left;
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1.25rem;
   background-color: #F9FAFB;
   color: #4B5563;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .modern-table th:first-child { border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; }
 .modern-table th:last-child { border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
 
 .modern-table td {
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid #F3F4F6;
   color: #1F2937;
   vertical-align: middle;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
 }
 
 .modern-table tbody tr {
