@@ -19,7 +19,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./BACKEND
       dockerfile: Dockerfile
     container_name: prado_verde_backend
     restart: always
@@ -35,7 +35,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./FRONTEND
       dockerfile: Dockerfile
     container_name: prado_verde_frontend
     restart: always
