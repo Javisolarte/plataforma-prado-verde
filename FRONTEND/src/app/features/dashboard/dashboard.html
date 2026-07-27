@@ -151,13 +151,11 @@
               <input type="text" 
                      [ngModel]="vigilanteSearchTerm()" 
                      (ngModelChange)="onVigilanteSearchInput($event)"
-                     (keyup.enter)="doVigilanteSearch()" 
-                     placeholder="Escriba Placa, Cédula, Nombre, Apto o Parqueadero..." 
+                     placeholder="Escriba Placa (ej: ABC123), Cédula, Nombre, Apto o Parqueadero..." 
                      class="vigilante-input"
                      autofocus>
-              <button *ngIf="vigilanteSearchTerm()" (click)="onVigilanteSearchInput('')" class="clear-btn" title="Limpiar">✕</button>
+              <button *ngIf="vigilanteSearchTerm()" (click)="onVigilanteSearchInput('')" class="clear-btn" title="Limpiar búsqueda">✕</button>
             </div>
-            <button class="btn-search-submit" (click)="doVigilanteSearch()">Buscar</button>
           </div>
 
           <div *ngIf="vigilanteSearching()" style="text-align: center; padding: 3rem; color: #059669; font-size: 1.25rem; font-weight: 600;">

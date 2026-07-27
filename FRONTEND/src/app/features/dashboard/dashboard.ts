@@ -90,7 +90,7 @@ export class Dashboard implements OnInit {
     this.vigilanteSearching.set(true);
     this.searchTimer = setTimeout(() => {
       this.doVigilanteSearch();
-    }, 150);
+    }, 50);
   }
 
   doVigilanteSearch() {
