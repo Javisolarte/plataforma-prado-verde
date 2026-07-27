@@ -7,13 +7,17 @@ export class ResidenteService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: any) {
-    const { apartamentoId, tipoResidente, ...residenteData } = data;
+    const { apartamentoId, tipoResidente, cedula, documento, ...rest } = data;
+    const docValue = documento || cedula || null;
     
     const residente = await this.prisma.residente.create({ 
-      data: residenteData 
+      data: {
+        ...rest,
+        documento: docValue ? String(docValue).trim().toUpperCase() : null
+      } 
     });
 
-    if (apartamentoId) {
+    if (apartamentoId && Number(apartamentoId) > 0) {
       await this.prisma.residenteApartamento.create({
         data: {
           residenteId: residente.id,
@@ -46,23 +50,34 @@ export class ResidenteService {
   }
 
   async update(id: number, data: any) {
-    const { apartamentoId, tipoResidente, ...residenteData } = data;
+    const { apartamentoId, tipoResidente, cedula, documento, ...rest } = data;
+    const updatePayload: any = { ...rest };
+    if (documento !== undefined || cedula !== undefined) {
+      const docVal = documento || cedula;
+      updatePayload.documento = docVal ? String(docVal).trim().toUpperCase() : null;
+    }
     
-    const residente = await this.prisma.residente.update({ where: { id }, data: residenteData });
+    const residente = await this.prisma.residente.update({ where: { id }, data: updatePayload });
 
-    if (apartamentoId) {
-      const existe = await this.prisma.residenteApartamento.findFirst({
-        where: { residenteId: id, apartamentoId: Number(apartamentoId) }
+    if (apartamentoId !== undefined && apartamentoId !== null && apartamentoId !== '') {
+      const targetAptoId = Number(apartamentoId);
+      await this.prisma.residenteApartamento.deleteMany({
+        where: { residenteId: id }
       });
-      if (!existe) {
+      if (targetAptoId > 0) {
         await this.prisma.residenteApartamento.create({
           data: {
             residenteId: id,
-            apartamentoId: Number(apartamentoId),
+            apartamentoId: targetAptoId,
             tipo: tipoResidente || 'PROPIETARIO'
           }
         });
       }
+    } else if (tipoResidente) {
+      await this.prisma.residenteApartamento.updateMany({
+        where: { residenteId: id },
+        data: { tipo: tipoResidente }
+      });
     }
     return residente;
   }

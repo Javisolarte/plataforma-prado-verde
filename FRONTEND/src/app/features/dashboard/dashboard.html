@@ -291,7 +291,10 @@
                             <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'nombre')" (keyup.enter)="saveEdit('residente', res.id, 'nombre')" class="inline-edit-input" autofocus>
                           </ng-container>
                           <ng-template #viewResName>
-                            <span class="editable-text" (click)="startEdit('res-'+res.id, 'nombre', res.nombre)">{{ res.nombre }} <span class="edit-icon">✎</span></span>
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                              <span class="editable-text" (click)="startEdit('res-'+res.id, 'nombre', res.nombre)">{{ res.nombre }} <span class="edit-icon">✎</span></span>
+                              <span class="badge bg-green-100 text-green-800" style="font-size: 0.6rem; border: 1px solid #A7F3D0; padding: 1px 5px; border-radius: 4px;">{{ res.tipo || 'PROPIETARIO' }}</span>
+                            </span>
                           </ng-template>
                         </div>
                         <div style="font-size: 0.75rem; color: #6B7280; display: flex; gap: 4px; align-items: center; margin-top: 2px;">
@@ -597,17 +600,19 @@
           </div>
           <table class="modern-table">
             <thead>
-              <tr><th>Nombre</th><th>Cédula</th><th>Contacto</th><th>Ubicación</th><th>Acciones</th></tr>
+              <tr><th>Nombre</th><th>Cédula</th><th>Tipo</th><th>Contacto</th><th>Ubicación</th><th>Acciones</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let res of filteredResidentes">
                 <td>
                   <div style="font-weight: 600;">{{ res.nombre }}</div>
                 </td>
-                <td><span class="badge bg-blue-100 text-blue-800" style="font-size: 0.75rem;">{{ res.cedula || 'N/A' }}</span></td>
+                <td><span class="badge bg-blue-100 text-blue-800" style="font-size: 0.75rem;">{{ res.documento || res.cedula || 'N/A' }}</span></td>
+                <td><span class="badge bg-green-100 text-green-800" style="font-size: 0.75rem;">{{ res.apartamentos?.[0]?.tipo || 'PROPIETARIO' }}</span></td>
                 <td>{{ res.telefono || 'N/A' }}</td>
                 <td>
                   <div *ngFor="let a of res.apartamentos">T: {{ a.apartamento?.torre?.nombre }}, Apto: {{ a.apartamento?.numero }}</div>
+                  <div *ngIf="!res.apartamentos || res.apartamentos.length === 0" style="color: #9CA3AF; font-size: 0.8rem;">Sin Apto</div>
                 </td>
                 <td>
                   <div class="table-actions">
@@ -664,12 +669,12 @@
 <app-modal [(isOpen)]="isResidenteModalOpen" [title]="editingId ? 'Editar Residente' : 'Nuevo Residente'">
   <form [formGroup]="residenteForm" (ngSubmit)="saveResidente()">
     <div class="input-group">
-      <label class="input-label">Nombre Completo</label>
+      <label class="input-label">Nombre Completo *</label>
       <input type="text" class="input-field" formControlName="nombre">
     </div>
     <div class="input-group">
-      <label class="input-label">Cédula</label>
-      <input type="text" class="input-field" formControlName="cedula">
+      <label class="input-label">Cédula / Documento</label>
+      <input type="text" class="input-field" formControlName="documento">
     </div>
     <div class="input-group">
       <label class="input-label">Teléfono</label>
@@ -680,14 +685,13 @@
       <select class="input-field" formControlName="tipoResidente">
         <option value="PROPIETARIO">Propietario</option>
         <option value="ARRENDATARIO">Arrendatario</option>
-        <option value="FAMILIAR">Familiar</option>
       </select>
     </div>
     <div class="input-group">
       <label class="input-label">Asignar a Apartamento</label>
       <select class="input-field" formControlName="apartamentoId">
         <option [ngValue]="null">Ninguno</option>
-        <option *ngFor="let apto of aptos()" [ngValue]="apto.id">Torre {{ apto.torreId }} - Apto {{ apto.numero }}</option>
+        <option *ngFor="let apto of aptos()" [ngValue]="apto.id">Apto {{ apto.numero }}</option>
       </select>
     </div>
     <div class="modal-actions">
@@ -888,8 +892,8 @@
           <input type="text" class="input-field" formControlName="residenteNombre">
         </div>
         <div class="input-group">
-          <label class="input-label">Cédula</label>
-          <input type="text" class="input-field" formControlName="residenteCedula">
+          <label class="input-label">Cédula / Documento</label>
+          <input type="text" class="input-field" formControlName="residenteDocumento">
         </div>
         <div class="input-group">
           <label class="input-label">Teléfono</label>
@@ -900,7 +904,6 @@
           <select class="input-field" formControlName="residenteTipo">
             <option value="PROPIETARIO">Propietario</option>
             <option value="ARRENDATARIO">Arrendatario</option>
-            <option value="FAMILIAR">Familiar</option>
           </select>
         </div>
       </div>

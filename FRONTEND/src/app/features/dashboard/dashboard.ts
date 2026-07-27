@@ -278,7 +278,63 @@ export class Dashboard implements OnInit {
   torreForm: FormGroup = this.fb.group({ nombre: ['', Validators.required] });
   aptoForm: FormGroup = this.fb.group({ numero: ['', Validators.required], torreId: [null, Validators.required] });
   parqueaderoForm: FormGroup = this.fb.group({ numero: ['', Validators.required], tipo: ['SENCILLO', Validators.required], torreId: [null], apartamentoId: [null] });
-  residenteForm: FormGroup = this.fb.group({ nombre: ['', Validators.required], documento: [''], telefono: [''], apartamentoId: [null], tipoResidente: ['PROPIETARIO'] });
+  residenteForm: FormGroup = this.fb.group({ nombre: ['', Validators.required], documento: [''], cedula: [''], telefono: [''], apartamentoId: [null], tipoResidente: ['PROPIETARIO'] });
+
+  // Methods
+  openModal(type: 'conjunto'|'usuario'|'torre'|'apto'|'parqueadero'|'residente'|'vehiculo', entity?: any) {
+    this.editingId = entity ? entity.id : null;
+    switch(type) {
+      case 'conjunto':
+        entity ? this.conjuntoForm.patchValue(entity) : this.conjuntoForm.reset();
+        this.isConjuntoModalOpen = true; break;
+      case 'torre':
+        entity ? this.torreForm.patchValue(entity) : this.torreForm.reset();
+        this.isTorreModalOpen = true; break;
+      case 'apto':
+        entity ? this.aptoForm.patchValue(entity) : this.aptoForm.reset();
+        this.isAptoModalOpen = true; break;
+      case 'parqueadero':
+        entity ? this.parqueaderoForm.patchValue(entity) : this.parqueaderoForm.reset({tipo: 'SENCILLO'});
+        this.isParqueaderoModalOpen = true; break;
+      case 'residente':
+        if (entity) {
+          const aptoLink = entity.apartamentos?.[0];
+          const docVal = entity.documento || entity.cedula || '';
+          this.residenteForm.patchValue({
+            nombre: entity.nombre || '',
+            documento: docVal,
+            cedula: docVal,
+            telefono: entity.telefono || '',
+            apartamentoId: aptoLink ? aptoLink.apartamentoId : null,
+            tipoResidente: aptoLink ? aptoLink.tipo : 'PROPIETARIO'
+          });
+        } else {
+          this.residenteForm.reset({ tipoResidente: 'PROPIETARIO', apartamentoId: null });
+        }
+        this.isResidenteModalOpen = true; break;
+      case 'vehiculo':
+        entity ? this.vehiculoForm.patchValue(entity) : this.vehiculoForm.reset({tipo: 'CARRO'});
+        this.isVehiculoModalOpen = true; break;
+      case 'usuario':
+        if(entity) {
+          this.usuarioForm.patchValue(entity);
+          this.usuarioForm.get('password')?.clearValidators();
+        } else {
+          let defaultRol = 'ADMINISTRADOR';
+          if (this.user()?.rol === 'SUPERUSUARIO' && !this.managingConjuntoId()) {
+            defaultRol = 'SUPERUSUARIO';
+          } else if (this.user()?.rol === 'ADMINISTRADOR') {
+            defaultRol = 'VIGILANTE';
+          }
+
+          const defaultConj = (this.user()?.rol === 'ADMINISTRADOR' || this.managingConjuntoId()) ? this.contextConjuntoId : null;
+          this.usuarioForm.reset({ rol: defaultRol, conjuntoId: defaultConj });
+          this.usuarioForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+        }
+        this.usuarioForm.get('password')?.updateValueAndValidity();
+        this.isUsuarioModalOpen = true; break;
+    }
+  }
   vehiculoForm: FormGroup = this.fb.group({ placa: ['', Validators.required], tipo: ['CARRO', Validators.required], marca: [''], color: [''], parqueaderoId: [null, Validators.required] });
   
   wizardForm: FormGroup = this.fb.group({
@@ -341,49 +397,6 @@ export class Dashboard implements OnInit {
   exitManagementMode() {
     this.managingConjuntoId.set(null);
     this.view = 'conjuntos';
-  }
-
-  // MÃ©todos genÃ©ricos para abrir modales
-  openModal(type: 'conjunto'|'usuario'|'torre'|'apto'|'parqueadero'|'residente'|'vehiculo', entity?: any) {
-    this.editingId = entity ? entity.id : null;
-    switch(type) {
-      case 'conjunto':
-        entity ? this.conjuntoForm.patchValue(entity) : this.conjuntoForm.reset();
-        this.isConjuntoModalOpen = true; break;
-      case 'torre':
-        entity ? this.torreForm.patchValue(entity) : this.torreForm.reset();
-        this.isTorreModalOpen = true; break;
-      case 'apto':
-        entity ? this.aptoForm.patchValue(entity) : this.aptoForm.reset();
-        this.isAptoModalOpen = true; break;
-      case 'parqueadero':
-        entity ? this.parqueaderoForm.patchValue(entity) : this.parqueaderoForm.reset({tipo: 'SENCILLO'});
-        this.isParqueaderoModalOpen = true; break;
-      case 'residente':
-        entity ? this.residenteForm.patchValue(entity) : this.residenteForm.reset({tipoResidente: 'PROPIETARIO'});
-        this.isResidenteModalOpen = true; break;
-      case 'vehiculo':
-        entity ? this.vehiculoForm.patchValue(entity) : this.vehiculoForm.reset({tipo: 'CARRO'});
-        this.isVehiculoModalOpen = true; break;
-      case 'usuario':
-        if(entity) {
-          this.usuarioForm.patchValue(entity);
-          this.usuarioForm.get('password')?.clearValidators();
-        } else {
-          let defaultRol = 'ADMINISTRADOR';
-          if (this.user()?.rol === 'SUPERUSUARIO' && !this.managingConjuntoId()) {
-            defaultRol = 'SUPERUSUARIO';
-          } else if (this.user()?.rol === 'ADMINISTRADOR') {
-            defaultRol = 'VIGILANTE';
-          }
-
-          const defaultConj = (this.user()?.rol === 'ADMINISTRADOR' || this.managingConjuntoId()) ? this.contextConjuntoId : null;
-          this.usuarioForm.reset({ rol: defaultRol, conjuntoId: defaultConj });
-          this.usuarioForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
-        }
-        this.usuarioForm.get('password')?.updateValueAndValidity();
-        this.isUsuarioModalOpen = true; break;
-    }
   }
 
   // --- TORRES CRUD ---
@@ -667,7 +680,16 @@ export class Dashboard implements OnInit {
 
       // 5. Residente
       if (this.wizardForm.value.crearResidente && data.residenteNombre) {
-        await this.residenteService.create({ nombre: data.residenteNombre, cedula: data.residenteCedula, telefono: data.residenteTelefono, conjuntoId: cId, apartamentoId: aId, tipoResidente: data.residenteTipo || 'PROPIETARIO' }).toPromise();
+        const docVal = (data.residenteDocumento || data.residenteCedula || '').trim().toUpperCase();
+        await this.residenteService.create({ 
+          nombre: data.residenteNombre, 
+          documento: docVal || null, 
+          cedula: docVal || null, 
+          telefono: data.residenteTelefono, 
+          conjuntoId: cId, 
+          apartamentoId: aId, 
+          tipoResidente: data.residenteTipo || 'PROPIETARIO' 
+        }).toPromise();
       }
 
       this.isWizardOpen = false;
