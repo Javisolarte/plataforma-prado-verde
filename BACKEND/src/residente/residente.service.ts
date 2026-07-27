@@ -7,24 +7,60 @@ export class ResidenteService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: any) {
-    const { apartamentoId, tipoResidente, cedula, documento, ...rest } = data;
-    const docValue = documento || cedula || null;
-    
-    const residente = await this.prisma.residente.create({ 
-      data: {
-        ...rest,
-        documento: docValue ? String(docValue).trim().toUpperCase() : null
-      } 
-    });
+    const { apartamentoId, tipoResidente, cedula, documento, conjuntoId, nombre, telefono } = data;
+    if (!conjuntoId) {
+      throw new BadRequestException('El conjuntoId es obligatorio para registrar el residente');
+    }
+    const cId = Number(conjuntoId);
+    const docValue = (documento || cedula || '').toString().trim().toUpperCase() || null;
 
-    if (apartamentoId && Number(apartamentoId) > 0) {
-      await this.prisma.residenteApartamento.create({
+    let residente: any = null;
+
+    if (docValue) {
+      residente = await this.prisma.residente.findFirst({
+        where: { documento: docValue }
+      });
+    }
+
+    if (residente) {
+      residente = await this.prisma.residente.update({
+        where: { id: residente.id },
         data: {
-          residenteId: residente.id,
-          apartamentoId: Number(apartamentoId),
-          tipo: tipoResidente || 'PROPIETARIO'
+          nombre: String(nombre || residente.nombre).trim().toUpperCase(),
+          telefono: telefono !== undefined ? String(telefono).trim().toUpperCase() : residente.telefono
         }
       });
+    } else {
+      residente = await this.prisma.residente.create({
+        data: {
+          nombre: String(nombre).trim().toUpperCase(),
+          documento: docValue,
+          telefono: telefono ? String(telefono).trim().toUpperCase() : null,
+          conjuntoId: cId
+        }
+      });
+    }
+
+    if (apartamentoId && Number(apartamentoId) > 0) {
+      const aptoId = Number(apartamentoId);
+      const existingLink = await this.prisma.residenteApartamento.findFirst({
+        where: { residenteId: residente.id, apartamentoId: aptoId }
+      });
+
+      if (!existingLink) {
+        await this.prisma.residenteApartamento.create({
+          data: {
+            residenteId: residente.id,
+            apartamentoId: aptoId,
+            tipo: tipoResidente || 'PROPIETARIO'
+          }
+        });
+      } else if (tipoResidente) {
+        await this.prisma.residenteApartamento.update({
+          where: { id: existingLink.id },
+          data: { tipo: tipoResidente }
+        });
+      }
     }
 
     return residente;
@@ -59,26 +95,27 @@ export class ResidenteService {
     
     const residente = await this.prisma.residente.update({ where: { id }, data: updatePayload });
 
-    if (apartamentoId !== undefined && apartamentoId !== null && apartamentoId !== '') {
-      const targetAptoId = Number(apartamentoId);
-      await this.prisma.residenteApartamento.deleteMany({
-        where: { residenteId: id }
+    if (apartamentoId && Number(apartamentoId) > 0) {
+      const aptoId = Number(apartamentoId);
+      const existingLink = await this.prisma.residenteApartamento.findFirst({
+        where: { residenteId: id, apartamentoId: aptoId }
       });
-      if (targetAptoId > 0) {
+      if (!existingLink) {
         await this.prisma.residenteApartamento.create({
           data: {
             residenteId: id,
-            apartamentoId: targetAptoId,
+            apartamentoId: aptoId,
             tipo: tipoResidente || 'PROPIETARIO'
           }
         });
+      } else if (tipoResidente) {
+        await this.prisma.residenteApartamento.update({
+          where: { id: existingLink.id },
+          data: { tipo: tipoResidente }
+        });
       }
-    } else if (tipoResidente) {
-      await this.prisma.residenteApartamento.updateMany({
-        where: { residenteId: id },
-        data: { tipo: tipoResidente }
-      });
     }
+
     return residente;
   }
 
@@ -87,34 +124,38 @@ export class ResidenteService {
   }
 
   async generateAccount(id: number, accountData: any) {
-    const { email, password } = accountData;
-    
     const residente = await this.prisma.residente.findUnique({ where: { id } });
     if (!residente) throw new BadRequestException('Residente no encontrado');
-    if (residente.usuarioId) throw new BadRequestException('Este residente ya tiene una cuenta asociada');
 
-    const existing = await this.prisma.usuario.findUnique({ where: { email: email.trim().toLowerCase() } });
-    if (existing) throw new BadRequestException('El correo ya está en uso');
+    const email = accountData.email?.toLowerCase().trim();
+    const password = accountData.password;
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    if (!email || !password) {
+      throw new BadRequestException('Email y contraseña son requeridos');
+    }
 
-    const newUser = await this.prisma.usuario.create({
+    const existingUser = await this.prisma.usuario.findUnique({ where: { email } });
+    if (existingUser) throw new BadRequestException('El correo ya está registrado');
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const usuario = await this.prisma.usuario.create({
       data: {
-        email: email.trim().toLowerCase(),
-        passwordHash,
+        email,
+        passwordHash: hashedPassword,
         nombre: residente.nombre,
+        documento: residente.documento,
         telefono: residente.telefono,
         rol: 'RESIDENTE',
         conjuntoId: residente.conjuntoId
       }
     });
 
-    const updatedResidente = await this.prisma.residente.update({
+    await this.prisma.residente.update({
       where: { id },
-      data: { usuarioId: newUser.id },
-      include: { usuario: { select: { email: true, id: true, rol: true } } }
+      data: { usuarioId: usuario.id }
     });
 
-    return updatedResidente;
+    return usuario;
   }
 }

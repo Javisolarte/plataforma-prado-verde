@@ -670,51 +670,77 @@ export class Dashboard implements OnInit {
     this.wizardLoading = true;
     try {
       const data = this.forceUppercase(this.wizardForm.value);
-      const cId = this.contextConjuntoId;
-      
-      // 1. Torre
-      let tId = data.torreId;
-      if (!tId && data.nuevaTorreNombre) {
-        const t = await this.torreService.create({ nombre: data.nuevaTorreNombre, conjuntoId: cId }).toPromise();
-        tId = t?.id;
+      let cId = this.contextConjuntoId;
+
+      if (!cId || cId === 0) {
+        if (this.conjuntos().length > 0) {
+          cId = this.conjuntos()[0].id;
+        } else {
+          alert('Por favor selecciona o crea un conjunto residencial primero.');
+          this.wizardLoading = false;
+          return;
+        }
       }
       
+      // 1. Torre
+      let tId: number | null = data.torreId ? Number(data.torreId) : null;
+      if (!tId && data.nuevaTorreNombre) {
+        const t = await this.torreService.create({ nombre: data.nuevaTorreNombre, conjuntoId: cId }).toPromise();
+        tId = t ? t.id : null;
+      }
+      
+      if (!tId) {
+        alert('Debes seleccionar o ingresar un nombre de Torre válido.');
+        this.wizardLoading = false;
+        return;
+      }
+
       // 2. Apto
-      const a = await this.aptoService.create({ numero: data.aptoNumero, torreId: tId }).toPromise();
-      const aId = a?.id;
+      const a = await this.aptoService.create({ numero: String(data.aptoNumero), torreId: Number(tId) }).toPromise();
+      const aId: number | null = a ? a.id : null;
 
       // 3. Parqueadero
       let pId = null;
       if (this.wizardForm.value.crearParqueadero && data.parqueaderoNumero) {
-        const p = await this.parqueaderoService.create({ numero: data.parqueaderoNumero, tipo: data.parqueaderoTipo, conjuntoId: cId, apartamentoId: aId, torreId: tId }).toPromise();
+        const p = await this.parqueaderoService.create({ 
+          numero: String(data.parqueaderoNumero), 
+          tipo: data.parqueaderoTipo || 'SENCILLO', 
+          conjuntoId: cId, 
+          apartamentoId: Number(aId), 
+          torreId: Number(tId) 
+        }).toPromise();
         pId = p?.id;
       }
 
-      // 4. VehÃ­culo
+      // 4. Vehículo
       if (this.wizardForm.value.crearVehiculo && pId && data.vehiculoPlaca) {
-        await this.vehiculoService.create({ placa: data.vehiculoPlaca, tipo: data.vehiculoTipo, parqueaderoId: pId }).toPromise();
+        await this.vehiculoService.create({ 
+          placa: String(data.vehiculoPlaca), 
+          tipo: data.vehiculoTipo || 'CARRO', 
+          parqueaderoId: Number(pId) 
+        }).toPromise();
       }
 
       // 5. Residente
       if (this.wizardForm.value.crearResidente && data.residenteNombre) {
         const docVal = (data.residenteDocumento || data.residenteCedula || '').trim().toUpperCase();
         await this.residenteService.create({ 
-          nombre: data.residenteNombre, 
+          nombre: String(data.residenteNombre), 
           documento: docVal || null, 
           cedula: docVal || null, 
-          telefono: data.residenteTelefono, 
+          telefono: data.residenteTelefono ? String(data.residenteTelefono) : null, 
           conjuntoId: cId, 
-          apartamentoId: aId, 
+          apartamentoId: Number(aId), 
           tipoResidente: data.residenteTipo || 'PROPIETARIO' 
         }).toPromise();
       }
 
       this.isWizardOpen = false;
       this.loadAllData();
-      alert('Â¡Ecosistema creado exitosamente!');
+      alert('¡Ecosistema creado exitosamente!');
     } catch (e: any) {
-      alert(e.error?.message || 'OcurriÃ³ un error en la creaciÃ³n');
-      console.error(e);
+      alert('Error en el Asistente: ' + (e.error?.message || e.message || 'Error del servidor'));
+      console.error('Wizard error:', e);
     }
     this.wizardLoading = false;
   }
