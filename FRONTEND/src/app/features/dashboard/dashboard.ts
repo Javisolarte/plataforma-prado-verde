@@ -123,6 +123,52 @@ export class Dashboard implements OnInit {
     this.sidebarCollapsed.update(val => !val);
   }
 
+  // Menú desplegable de 3 puntos para Acciones Rápida en Tabla
+  activeDropdownAptoId = signal<number | null>(null);
+
+  toggleRowDropdown(aptoId: number, event: Event) {
+    event.stopPropagation();
+    if (this.activeDropdownAptoId() === aptoId) {
+      this.activeDropdownAptoId.set(null);
+    } else {
+      this.activeDropdownAptoId.set(aptoId);
+    }
+  }
+
+  closeDropdowns() {
+    this.activeDropdownAptoId.set(null);
+  }
+
+  openResidenteModalForApto(aptoId: number) {
+    this.editingId = null;
+    this.residenteForm.reset({ apartamentoId: aptoId, tipoResidente: 'PROPIETARIO' });
+    this.isResidenteModalOpen = true;
+    this.activeDropdownAptoId.set(null);
+  }
+
+  openVehiculoModalForApto(aptoId: number) {
+    this.editingId = null;
+    const parq = this.parqueaderos().find(p => p.apartamentoId === aptoId);
+    this.vehiculoForm.reset({ 
+      parqueaderoId: parq ? parq.id : (this.parqueaderos()[0]?.id || null), 
+      tipo: 'CARRO' 
+    });
+    this.isVehiculoModalOpen = true;
+    this.activeDropdownAptoId.set(null);
+  }
+
+  openParqueaderoModalForApto(aptoId: number) {
+    this.editingId = null;
+    const apto = this.aptos().find(a => a.id === aptoId);
+    this.parqueaderoForm.reset({ 
+      apartamentoId: aptoId, 
+      torreId: apto ? apto.torreId : null,
+      tipo: 'SENCILLO' 
+    });
+    this.isParqueaderoModalOpen = true;
+    this.activeDropdownAptoId.set(null);
+  }
+
   // Data Signals
   conjuntos = signal<Conjunto[]>([]);
   usuarios = signal<User[]>([]);
@@ -708,12 +754,6 @@ export class Dashboard implements OnInit {
     };
     reader.readAsText(file);
     event.target.value = ''; 
-  }
-
-  openResidenteModalForApto(aptoId: number) {
-    this.editingId = null;
-    this.residenteForm.reset({tipoResidente: 'PROPIETARIO', apartamentoId: aptoId});
-    this.isResidenteModalOpen = true;
   }
 }
 

@@ -1,10 +1,10 @@
-<div class="dashboard-layout">
+<div class="dashboard-layout" (click)="closeDropdowns()">
   <!-- SIDEBAR -->
   <aside class="sidebar" [class.collapsed]="sidebarCollapsed()">
     <div class="sidebar-header">
       <div class="brand-row">
         <div class="brand-info">
-          <div class="logo-box">
+          <div class="logo-box" (click)="toggleSidebar()" style="cursor: pointer;" title="Minimizar / Expandir menú">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" style="width: 100%; height: 100%;">
               <rect x="5" y="5" width="90" height="90" rx="22" fill="#FFFFFF" />
               <rect x="22" y="38" width="22" height="42" rx="3" fill="#10B981" />
@@ -27,7 +27,7 @@
           </span>
         </div>
 
-        <button class="btn-toggle-sidebar-nav" (click)="toggleSidebar()" title="Minimizar / Expandir menú">
+        <button class="btn-toggle-sidebar-nav" (click)="toggleSidebar(); $event.stopPropagation()" title="Minimizar / Expandir menú">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -153,13 +153,9 @@
       <!-- VISTA VIGILANTE -->
       <ng-container *ngIf="view === 'vigilante'">
         <div class="vigilante-container">
-          <div style="text-align: center; margin-bottom: 2rem;">
-            <h2 style="font-size: 2rem; font-weight: 800; color: #065F46; margin: 0;">Buscar</h2>
-          </div>
-          
           <div class="vigilante-search-bar">
             <div class="search-input-wrapper">
-              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
@@ -167,7 +163,7 @@
                      [ngModel]="vigilanteSearchTerm()" 
                      (ngModelChange)="onVigilanteSearchInput($event)"
                      (keyup.enter)="doVigilanteSearch()"
-                     placeholder="Buscar placa, cédula, nombre, parqueadero, apto, torre..." 
+                     placeholder="Placa, cédula, apto, torre, nombre..." 
                      class="vigilante-input"
                      autofocus>
               <button *ngIf="vigilanteSearchTerm()" (click)="onVigilanteSearchInput('')" class="clear-btn" title="Limpiar búsqueda">✕</button>
@@ -345,15 +341,37 @@
                      </div>
                      <div *ngIf="row.vehs.length === 0" style="color: #D1D5DB; font-weight: 500;">Ninguno</div>
                    </td>
-                 <td>
-                   <div class="table-actions">
-                     <button class="btn-action edit" (click)="openModal('apto', row.aptoObj)" style="padding: 0.25rem 0.75rem; border-radius: 0.25rem;">Apto</button>
-                     <button class="btn-action primary" style="background-color: #ECFDF5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 0.25rem;" *ngIf="row.resObj" (click)="openModal('residente', row.resObj)">Residente</button>
-                     <button class="btn-action primary" style="background-color: #ECFDF5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 0.25rem;" *ngIf="!row.resObj" (click)="openResidenteModalForApto(row.aptoId)">+ Residente</button>
-                     <button class="btn-action primary" style="background-color: #ECFDF5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 0.25rem;" *ngIf="row.parqObj" (click)="openModal('parqueadero', row.parqObj)">Parqueadero</button>
-                     <button class="btn-action primary" style="background-color: #ECFDF5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 0.25rem;" *ngIf="!row.parqObj" (click)="openModal('parqueadero')">+ Parqueadero</button>
-                   </div>
-                 </td>
+                   <td style="position: relative; text-align: center;">
+                    <div class="row-dropdown-container">
+                      <button class="btn-dots-menu" (click)="toggleRowDropdown(row.aptoId, $event)" title="Acciones Rápidas">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                        </svg>
+                      </button>
+
+                      <div class="dots-dropdown-menu" *ngIf="activeDropdownAptoId() === row.aptoId">
+                        <div class="dropdown-header">Acciones Apto {{ row.aptoNumero }}</div>
+                        <button class="dropdown-item" (click)="openModal('apto', row.aptoObj)">
+                          <span class="icon">🏢</span> Editar Apto
+                        </button>
+                        <button class="dropdown-item" *ngIf="row.resObj" (click)="openModal('residente', row.resObj)">
+                          <span class="icon">👤</span> Editar Residente
+                        </button>
+                        <button class="dropdown-item" *ngIf="!row.resObj" (click)="openResidenteModalForApto(row.aptoId)">
+                          <span class="icon">👤</span> + Agregar Residente
+                        </button>
+                        <button class="dropdown-item" (click)="openVehiculoModalForApto(row.aptoId)">
+                          <span class="icon">🚗</span> + Vincular Vehículo
+                        </button>
+                        <button class="dropdown-item" *ngIf="row.parqObj" (click)="openModal('parqueadero', row.parqObj)">
+                          <span class="icon">🅿️</span> Editar Parqueadero
+                        </button>
+                        <button class="dropdown-item" *ngIf="!row.parqObj" (click)="openParqueaderoModalForApto(row.aptoId)">
+                          <span class="icon">🅿️</span> + Asignar Parqueadero
+                        </button>
+                      </div>
+                    </div>
+                  </td>
                </tr>
              </tbody>
            </table>
