@@ -230,8 +230,16 @@ export class Dashboard implements OnInit {
       const torre = currentTorres.find(t => t.id === apto.torreId);
       const parqs = currentParq.filter(p => p.apartamentoId === apto.id);
       
-      const vinculados = this.residentes().filter(r => r.apartamentos?.some((ra: any) => ra.apartamentoId === apto.id));
-      const resNombres = vinculados.length > 0 ? vinculados.map(v => v.nombre).join(', ') : 'Desocupado';
+      const vinculados = this.residentes()
+        .filter(r => r.apartamentos?.some((ra: any) => ra.apartamentoId === apto.id))
+        .map(r => {
+          const aptoLink = r.apartamentos?.find((ra: any) => ra.apartamentoId === apto.id);
+          return {
+            ...r,
+            tipo: aptoLink ? aptoLink.tipo : 'PROPIETARIO'
+          };
+        });
+      const resNombres = vinculados.length > 0 ? vinculados.map(v => `${v.nombre} (${v.tipo})`).join(', ') : 'Desocupado';
 
       const parqIds = parqs.map(p => p.id);
       const vehs = this.vehiculos().filter(v => parqIds.includes(v.parqueaderoId));
