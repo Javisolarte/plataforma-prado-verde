@@ -443,11 +443,16 @@ export class Dashboard implements OnInit {
     if (this.usuarioForm.invalid) return;
     const formData = { ...this.usuarioForm.value };
     if (!formData.password) delete formData.password;
-    if (formData.conjuntoId) formData.conjuntoId = Number(formData.conjuntoId);
     
-    // Forzar conjunto si es admin creando vigilante/residente
-    if (this.user()?.rol === 'ADMINISTRADOR') {
-      formData.conjuntoId = this.user()?.conjuntoId;
+    // Forzar conjunto si no es superusuario o si gestiona un conjunto en particular
+    if (this.user()?.rol !== 'SUPERUSUARIO' || this.managingConjuntoId()) {
+      formData.conjuntoId = this.contextConjuntoId;
+      if (formData.rol === 'SUPERUSUARIO') {
+        alert('Acceso denegado: Un Administrador no puede crear o asignar el rol Superusuario.');
+        return;
+      }
+    } else if (formData.conjuntoId) {
+      formData.conjuntoId = Number(formData.conjuntoId);
     }
 
     const req$ = this.editingId ? this.usuarioService.update(this.editingId, formData) : this.usuarioService.create(formData);
@@ -458,7 +463,12 @@ export class Dashboard implements OnInit {
   }
   
   deleteUsuario(id: number) {
-    if(confirm('Â¿Eliminar usuario?')) this.usuarioService.delete(id).subscribe(() => this.loadAllData());
+    const target = this.usuarios().find(u => u.id === id);
+    if (target?.rol === 'SUPERUSUARIO' && this.user()?.rol !== 'SUPERUSUARIO') {
+      alert('Acceso denegado: Solo un Superusuario puede eliminar a otros Superusuarios.');
+      return;
+    }
+    if(confirm('¿Eliminar usuario?')) this.usuarioService.delete(id).subscribe(() => this.loadAllData());
   }
 
   deleteConjunto(id: number) {

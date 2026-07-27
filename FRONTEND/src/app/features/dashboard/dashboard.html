@@ -412,15 +412,23 @@
               <tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
             </thead>
             <tbody>
-              <tr *ngFor="let u of usuarios()">
+              <tr *ngFor="let u of filteredUsuarios">
                 <td><strong>{{ u.nombre }}</strong></td>
                 <td>{{ u.email }}</td>
-                <td><span class="badge bg-blue-100 text-blue-800">{{ u.rol }}</span></td>
                 <td>
-                  <div class="table-actions">
+                  <span class="badge" [ngClass]="{
+                    'bg-purple-100 text-purple-800': u.rol === 'SUPERUSUARIO',
+                    'bg-blue-100 text-blue-800': u.rol === 'ADMINISTRADOR',
+                    'bg-green-100 text-green-800': u.rol === 'VIGILANTE',
+                    'bg-gray-100 text-gray-800': u.rol === 'RESIDENTE'
+                  }">{{ u.rol }}</span>
+                </td>
+                <td>
+                  <div class="table-actions" *ngIf="u.rol !== 'SUPERUSUARIO' || user()?.rol === 'SUPERUSUARIO'">
                     <button class="btn-action edit" (click)="openModal('usuario', u)">Editar</button>
                     <button class="btn-action delete" (click)="deleteUsuario(u.id)">Eliminar</button>
                   </div>
+                  <span *ngIf="u.rol === 'SUPERUSUARIO' && user()?.rol !== 'SUPERUSUARIO'" style="color: #9CA3AF; font-size: 0.85rem;">Protegido</span>
                 </td>
               </tr>
             </tbody>
@@ -714,6 +722,7 @@
     <div class="input-group">
       <label class="input-label">Rol</label>
       <select class="input-field" formControlName="rol">
+        <option value="SUPERUSUARIO" *ngIf="user()?.rol === 'SUPERUSUARIO' && !managingConjuntoId()">Superusuario</option>
         <option value="ADMINISTRADOR">Administrador</option>
         <option value="VIGILANTE">Vigilante</option>
       </select>
