@@ -35,4 +35,4 @@ COPY --from=build /app/prisma ./prisma
 EXPOSE 3000
 
 # Ejecutar migraciones/push automático en inicio y arrancar servidor NestJS
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss ; node dist/main"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss || true ; node dist/src/main.js"]
