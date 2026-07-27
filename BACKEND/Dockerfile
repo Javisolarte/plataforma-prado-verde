@@ -14,7 +14,6 @@ RUN npm install --legacy-peer-deps
 
 # Copiar el resto del código y generar cliente de Prisma + Build
 COPY . .
-ENV DATABASE_URL="postgresql://postgres:dummy@localhost:5432/dummy?schema=public"
 RUN npx prisma generate
 RUN npm run build
 
