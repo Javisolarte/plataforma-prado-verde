@@ -721,16 +721,31 @@ export class Dashboard implements OnInit {
 
   exportToExcel() {
     const data = this.masterData();
-    let csv = 'APARTAMENTO,TORRE,RESIDENTE,PARQUEADERO,VEHICULOS\n';
+    let csv = 'TORRE,APARTAMENTO,PARQUEADERO_NUMERO,PARQUEADERO_TIPO,VEHICULO_PLACA,VEHICULO_TIPO,RESIDENTE_NOMBRE,RESIDENTE_CEDULA,RESIDENTE_TELEFONO,RESIDENTE_TIPO\n';
+    
     data.forEach(row => {
-      const apto = (row.aptoNumero || '').replace(/"/g, '""');
       const torre = (row.torreNombre || '').replace(/"/g, '""');
-      const res = (row.residenteNombre || '').replace(/"/g, '""');
-      const parq = (row.parqNumero || '').replace(/"/g, '""');
-      const veh = (row.vehiculos || '').replace(/"/g, '""');
-      csv += `"${apto}","${torre}","${res}","${parq}","${veh}"\n`;
+      const apto = (row.aptoNumero || '').replace(/"/g, '""');
+      const parqNum = (row.parqNumero || '').replace(/"/g, '""');
+      const parqTipo = (row.parqTipo || '').replace(/"/g, '""');
+      
+      const vehPlaca = row.vehs && row.vehs.length > 0 ? row.vehs.map((v: any) => v.placa).join('; ') : '';
+      const vehTipo = row.vehs && row.vehs.length > 0 ? row.vehs.map((v: any) => v.tipo || 'CARRO').join('; ') : '';
+      
+      if (row.vinculados && row.vinculados.length > 0) {
+        row.vinculados.forEach((res: any) => {
+          const resNombre = (res.nombre || '').replace(/"/g, '""');
+          const resCedula = (res.documento || res.cedula || '').replace(/"/g, '""');
+          const resTel = (res.telefono || '').replace(/"/g, '""');
+          const resTipo = (res.tipo || 'PROPIETARIO').replace(/"/g, '""');
+          csv += `"${torre}","${apto}","${parqNum}","${parqTipo}","${vehPlaca}","${vehTipo}","${resNombre}","${resCedula}","${resTel}","${resTipo}"\n`;
+        });
+      } else {
+        csv += `"${torre}","${apto}","${parqNum}","${parqTipo}","${vehPlaca}","${vehTipo}","","","",""\n`;
+      }
     });
-    const blob = new Blob(["\uFEFF"+csv], { type: 'text/csv;charset=utf-8;' });
+
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     const conjuntoName = this.getConjuntoName(this.contextConjuntoId);

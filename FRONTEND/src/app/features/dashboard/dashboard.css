@@ -727,7 +727,7 @@
 .modern-table th:last-child { border-top-right-radius: 0.5rem; border-bottom-right-radius: 0.5rem; }
 
 .modern-table td {
-  padding: 1rem 1.25rem;
+  padding: 0.5rem 1rem;
   border-bottom: 1px solid #F3F4F6;
   color: #1F2937;
   vertical-align: middle;
