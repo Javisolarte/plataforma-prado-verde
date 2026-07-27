@@ -38,8 +38,10 @@
 
       <!-- PERFIL DE USUARIO COMPACTO -->
       <div class="sidebar-user-profile" *ngIf="!sidebarCollapsed()">
-        <span class="user-name-text">{{ user()?.nombre }}</span>
-        <span class="badge-role">{{ user()?.rol }}</span>
+        <div class="user-name-text">{{ user()?.nombre }}</div>
+        <div class="role-badge-container">
+          <span class="badge-role">{{ user()?.rol }}</span>
+        </div>
       </div>
     </div>
 
