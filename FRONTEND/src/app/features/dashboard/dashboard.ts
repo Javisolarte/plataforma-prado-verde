@@ -282,7 +282,8 @@ export class Dashboard implements OnInit {
   get contextName(): string {
     const cId = this.contextConjuntoId;
     if (cId) {
-      return this.getConjuntoName(cId) || 'Prado Verde';
+      const name = this.getConjuntoName(cId);
+      if (name && name !== 'N/A') return name;
     }
     return 'Prado Verde';
   }
@@ -485,8 +486,9 @@ export class Dashboard implements OnInit {
 
   // Helpers
   getConjuntoName(id: number | null): string {
+    if (!id) return 'Prado Verde';
     const conj = this.conjuntos().find(c => c.id === id);
-    return conj ? conj.nombre : 'N/A';
+    return conj ? conj.nombre : 'Prado Verde';
   }
   getTorreName(id: number | null): string {
     const t = this.torres().find(c => c.id === id);

@@ -27,22 +27,30 @@
     <nav class="sidebar-nav">
       <ng-container *ngIf="user()?.rol === 'VIGILANTE'">
         <a class="nav-item active" (click)="view = 'vigilante'" title="Control de Acceso">
-          <span class="nav-icon">🔍</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </span>
           <span class="nav-label">Control de Acceso</span>
         </a>
       </ng-container>
 
       <ng-container *ngIf="user()?.rol === 'SUPERUSUARIO' && !managingConjuntoId()">
         <a class="nav-item" [class.active]="view === 'dashboard'" (click)="view = 'dashboard'" title="Panel Principal">
-          <span class="nav-icon">📊</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="17" rx="1"/></svg>
+          </span>
           <span class="nav-label">Panel Principal</span>
         </a>
         <a class="nav-item" [class.active]="view === 'conjuntos'" (click)="view = 'conjuntos'" title="Gestión de Conjuntos">
-          <span class="nav-icon">🏢</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M13 11h4v10"/></svg>
+          </span>
           <span class="nav-label">Gestión de Conjuntos</span>
         </a>
         <a class="nav-item" [class.active]="view === 'usuarios'" (click)="view = 'usuarios'" title="Gestión de Usuarios">
-          <span class="nav-icon">👥</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
           <span class="nav-label">Gestión de Usuarios</span>
         </a>
       </ng-container>
@@ -50,35 +58,51 @@
       <!-- Menú Administrador -->
       <ng-container *ngIf="user()?.rol === 'ADMINISTRADOR' || (user()?.rol === 'SUPERUSUARIO' && managingConjuntoId())">
         <a class="nav-item" [class.active]="view === 'dashboard'" (click)="view = 'dashboard'" title="Dashboard">
-          <span class="nav-icon">📊</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="17" rx="1"/></svg>
+          </span>
           <span class="nav-label">Dashboard</span>
         </a>
         <a class="nav-item" [class.active]="view === 'conjuntos'" (click)="view = 'conjuntos'" title="Mi Conjunto">
-          <span class="nav-icon">🏢</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M13 11h4v10"/></svg>
+          </span>
           <span class="nav-label">Mi Conjunto</span>
         </a>
         <a class="nav-item" [class.active]="view === 'torres'" (click)="view = 'torres'" title="Torres">
-          <span class="nav-icon">🏛️</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2"/><line x1="10" y1="7" x2="14" y2="7"/><line x1="10" y1="12" x2="14" y2="12"/><line x1="10" y1="17" x2="14" y2="17"/></svg>
+          </span>
           <span class="nav-label">Torres</span>
         </a>
         <a class="nav-item" [class.active]="view === 'aptos'" (click)="view = 'aptos'" title="Apartamentos">
-          <span class="nav-icon">🚪</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M15 11h.01"/></svg>
+          </span>
           <span class="nav-label">Apartamentos</span>
         </a>
         <a class="nav-item" [class.active]="view === 'parqueaderos'" (click)="view = 'parqueaderos'" title="Parqueaderos">
-          <span class="nav-icon">🅿️</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 16V8h4a2.5 2.5 0 0 1 0 5H9"/></svg>
+          </span>
           <span class="nav-label">Parqueaderos</span>
         </a>
         <a class="nav-item" [class.active]="view === 'residentes'" (click)="view = 'residentes'" title="Residentes">
-          <span class="nav-icon">👨‍👩‍👧‍👦</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
           <span class="nav-label">Residentes</span>
         </a>
         <a class="nav-item" [class.active]="view === 'vehiculos'" (click)="view = 'vehiculos'" title="Vehículos">
-          <span class="nav-icon">🚗</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 3C2 11.3 2 11.7 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+          </span>
           <span class="nav-label">Vehículos</span>
         </a>
         <a class="nav-item" [class.active]="view === 'usuarios'" (click)="view = 'usuarios'" title="Usuarios">
-          <span class="nav-icon">👤</span>
+          <span class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
           <span class="nav-label">Usuarios</span>
         </a>
       </ng-container>
@@ -118,18 +142,22 @@
             <p style="color: #4B5563; font-size: 1.1rem;">Escriba una <strong>Placa</strong> (ej: ABC123), <strong>Cédula</strong>, <strong>Nombre</strong>, <strong>Parqueadero</strong> (ej: 1) o <strong>Apto / Torre</strong></p>
           </div>
           
-          <div class="search-box-large" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-            <div style="position: relative; flex: 1;">
+          <div class="vigilante-search-bar">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
               <input type="text" 
                      [ngModel]="vigilanteSearchTerm()" 
                      (ngModelChange)="onVigilanteSearchInput($event)"
                      (keyup.enter)="doVigilanteSearch()" 
                      placeholder="Escriba Placa, Cédula, Nombre, Apto o Parqueadero..." 
-                     style="width: 100%; padding: 1.25rem 2rem 1.25rem 3.5rem; font-size: 1.5rem; font-weight: 700; border: 3px solid #10B981; border-radius: 1rem; text-transform: uppercase; background: #FFFFFF; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15);"
+                     class="vigilante-input"
                      autofocus>
-              <span style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); font-size: 1.75rem; color: #10B981;">🔍</span>
+              <button *ngIf="vigilanteSearchTerm()" (click)="onVigilanteSearchInput('')" class="clear-btn" title="Limpiar">✕</button>
             </div>
-            <button class="btn-primary" (click)="doVigilanteSearch()" style="padding: 1rem 2.5rem; font-size: 1.25rem; font-weight: 700; border-radius: 1rem;">Buscar</button>
+            <button class="btn-search-submit" (click)="doVigilanteSearch()">Buscar</button>
           </div>
 
           <div *ngIf="vigilanteSearching()" style="text-align: center; padding: 3rem; color: #059669; font-size: 1.25rem; font-weight: 600;">
