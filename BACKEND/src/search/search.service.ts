@@ -6,51 +6,51 @@ export class SearchService {
   constructor(private prisma: PrismaService) {}
 
   async globalSearch(query: string, conjuntoId?: number) {
-    if (!query || query.trim().length < 2) return { apartamentos: [] };
-    
-    const term = query.trim();
-    const termLike = `${term}%`; 
-    const termLikeAnywhere = `%${term}%`; 
-    
-    // Filtros de conjunto correctos navegando hasta la Torre
-    let cFilterA = conjuntoId ? `AND t."conjuntoId" = ${conjuntoId}` : '';
-    let cFilterR = conjuntoId ? `AND r."conjuntoId" = ${conjuntoId}` : '';
-    let cFilterP = conjuntoId ? `AND t."conjuntoId" = ${conjuntoId}` : '';
+    const term = query ? query.trim() : '';
+    if (!term) return { apartamentos: [] };
 
-    // 1. Buscar IDs por Apartamento o Torre
+    const termLikeAnywhere = `%${term}%`;
+    const numConjuntoId = conjuntoId ? Number(conjuntoId) : null;
+
+    // Filtros de conjunto navegando por las relaciones
+    const cFilterA = numConjuntoId ? `AND t."conjuntoId" = ${numConjuntoId}` : '';
+    const cFilterR = numConjuntoId ? `AND r."conjuntoId" = ${numConjuntoId}` : '';
+    const cFilterP = numConjuntoId ? `AND (p."conjuntoId" = ${numConjuntoId} OR t."conjuntoId" = ${numConjuntoId})` : '';
+
+    // 1. Buscar IDs por Apartamento o Torre (ej: Apto 101, Torre 1, Torre A)
     const qAptos = this.prisma.$queryRawUnsafe<any[]>(`
       SELECT a.id FROM "Apartamento" a 
       JOIN "Torre" t ON t.id = a."torreId"
-      WHERE (a.numero ILIKE $1 OR t.nombre ILIKE $1) ${cFilterA} LIMIT 10;
+      WHERE (a.numero ILIKE $1 OR t.nombre ILIKE $1 OR (t.nombre || ' ' || a.numero) ILIKE $1) ${cFilterA} LIMIT 25;
     `, termLikeAnywhere);
 
-    // 2. Buscar IDs por Residente
+    // 2. Buscar IDs por Residente (Nombre, Cédula/Documento, Teléfono)
     const qRes = this.prisma.$queryRawUnsafe<any[]>(`
       SELECT ra."apartamentoId" as id FROM "Residente" r
       JOIN "ResidenteApartamento" ra ON ra."residenteId" = r.id
-      WHERE (r.nombre ILIKE $1 OR r.documento ILIKE $2 OR r.telefono ILIKE $2) ${cFilterR} LIMIT 10;
-    `, termLikeAnywhere, termLike);
+      WHERE (r.nombre ILIKE $1 OR r.documento ILIKE $1 OR r.telefono ILIKE $1) ${cFilterR} LIMIT 25;
+    `, termLikeAnywhere);
 
-    // 3. Buscar IDs por Vehículo o Parqueadero
+    // 3. Buscar IDs por Vehículo (Placa) o Parqueadero (Número exacto o parcial)
     const qVeh = this.prisma.$queryRawUnsafe<any[]>(`
-      SELECT p."apartamentoId" as id FROM "Parqueadero" p
+      SELECT DISTINCT p."apartamentoId" as id FROM "Parqueadero" p
       LEFT JOIN "Vehiculo" v ON v."parqueaderoId" = p.id
-      JOIN "Apartamento" a ON a.id = p."apartamentoId"
-      JOIN "Torre" t ON t.id = a."torreId"
-      WHERE (v.placa ILIKE $1 OR p.numero ILIKE $1) AND p."apartamentoId" IS NOT NULL ${cFilterP} LIMIT 10;
-    `, termLike);
+      LEFT JOIN "Apartamento" a ON a.id = p."apartamentoId"
+      LEFT JOIN "Torre" t ON t.id = a."torreId"
+      WHERE (v.placa ILIKE $1 OR p.numero ILIKE $1 OR p.numero = $2) AND p."apartamentoId" IS NOT NULL ${cFilterP} LIMIT 25;
+    `, termLikeAnywhere, term);
 
     const [aptos, res, vehs] = await Promise.all([qAptos, qRes, qVeh]);
     
     // Consolidar IDs únicos
     const idSet = new Set<number>();
-    aptos.forEach(x => idSet.add(x.id));
-    res.forEach(x => idSet.add(x.id));
-    vehs.forEach(x => idSet.add(x.id));
+    aptos.forEach(x => x?.id && idSet.add(x.id));
+    res.forEach(x => x?.id && idSet.add(x.id));
+    vehs.forEach(x => x?.id && idSet.add(x.id));
 
     if (idSet.size === 0) return { apartamentos: [] };
 
-    const ids = Array.from(idSet).join(',');
+    const idsList = Array.from(idSet).join(',');
 
     // Consultar el perfil unificado exacto para los apartamentos encontrados
     const perfiles = await this.prisma.$queryRawUnsafe<any[]>(`
@@ -75,7 +75,8 @@ export class SearchService {
         ), '[]'::json) as parqueaderos
       FROM "Apartamento" a
       JOIN "Torre" t ON t.id = a."torreId"
-      WHERE a.id IN (${ids})
+      WHERE a.id IN (${idsList})
+      ORDER BY t.nombre ASC, a.numero ASC
     `);
 
     return { apartamentos: perfiles };

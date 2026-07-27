@@ -75,23 +75,44 @@ export class Dashboard implements OnInit {
   vigilanteSearchTerm = signal<string>('');
   vigilanteResults = signal<SearchResult | null>(null);
   vigilanteSearching = signal<boolean>(false);
+  private searchTimer: any;
+
+  onVigilanteSearchInput(val: string) {
+    this.vigilanteSearchTerm.set(val);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+
+    if (!val || val.trim().length === 0) {
+      this.vigilanteResults.set(null);
+      this.vigilanteSearching.set(false);
+      return;
+    }
+
+    this.vigilanteSearching.set(true);
+    this.searchTimer = setTimeout(() => {
+      this.doVigilanteSearch();
+    }, 150);
+  }
 
   doVigilanteSearch() {
     let term = this.vigilanteSearchTerm().trim();
     if (!term) {
       this.vigilanteResults.set(null);
+      this.vigilanteSearching.set(false);
       return;
     }
     
     term = term.toUpperCase();
     this.vigilanteSearching.set(true);
-    const cId = this.user()?.conjuntoId || undefined;
+    const cId = this.contextConjuntoId || undefined;
     this.searchService.globalSearch(term, cId).subscribe({
       next: (res) => {
         this.vigilanteResults.set(res);
         this.vigilanteSearching.set(false);
       },
-      error: () => this.vigilanteSearching.set(false)
+      error: (err) => {
+        console.error('Error en búsqueda de vigilante:', err);
+        this.vigilanteSearching.set(false);
+      }
     });
   }
   
