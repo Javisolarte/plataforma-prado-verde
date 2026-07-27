@@ -1,0 +1,52 @@
+<!-- MODAL RESIDENTE -->
+<app-modal [(isOpen)]="isResidenteModalOpen" [title]="editingId ? 'Editar Residente' : 'Nuevo Residente'">
+  <form [formGroup]="residenteForm" (ngSubmit)="saveResidente()">
+    <div class="input-group">
+      <label class="input-label">Nombre Completo</label>
+      <input type="text" class="input-field" formControlName="nombre">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Teléfono (Opcional)</label>
+      <input type="text" class="input-field" formControlName="telefono">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Asignar a Apartamento (Opcional)</label>
+      <select class="input-field" formControlName="apartamentoId">
+        <option [ngValue]="null">-- Sin asignar --</option>
+        <option *ngFor="let a of currentAptos" [value]="a.id">{{ a.numero }} ({{ getTorreName(a.torreId) }})</option>
+      </select>
+    </div>
+    <div class="input-group" *ngIf="residenteForm.get('apartamentoId')?.value">
+      <label class="input-label">Tipo de Residente</label>
+      <select class="input-field" formControlName="tipoResidente">
+        <option value="PROPIETARIO">Propietario</option>
+        <option value="ARRENDATARIO">Arrendatario</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isResidenteModalOpen = false">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="residenteForm.invalid">Guardar</button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- MODAL GENERAR CUENTA -->
+<app-modal [(isOpen)]="isGenerateAccountModalOpen" title="Crear Cuenta para Residente">
+  <form [formGroup]="generateAccountForm" (ngSubmit)="submitGenerateAccount()">
+    <p style="font-size: 0.875rem; color: #6B7280; margin-bottom: 1rem;">
+      Esta acción creará un usuario con el rol de RESIDENTE y le dará acceso web a la plataforma.
+    </p>
+    <div class="input-group">
+      <label class="input-label">Correo Electrónico</label>
+      <input type="email" class="input-field" formControlName="email">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Contraseña</label>
+      <input type="password" class="input-field" formControlName="password">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isGenerateAccountModalOpen = false">Cancelar</button>
+      <button type="submit" class="btn-primary" style="background:#10B981; border-color:#10B981;" [disabled]="generateAccountForm.invalid">Generar Cuenta</button>
+    </div>
+  </form>
+</app-modal>

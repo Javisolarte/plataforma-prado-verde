@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPERUSUARIO
+  ADMINISTRADOR
+  VIGILANTE
+  RESIDENTE
+}
+
+enum TipoResidente {
+  PROPIETARIO
+  ARRENDATARIO
+}
+
+enum TipoVehiculo {
+  CARRO
+  MOTO
+}
+
+enum TipoParqueadero {
+  SENCILLO
+  DUPLEX
+}
+
+model Conjunto {
+  id           Int           @id @default(autoincrement())
+  nombre       String
+  direccion    String
+  telefono     String?
+  contacto     String?
+  createdAt    DateTime      @default(now())
+
+  usuarios     Usuario[]
+  torres       Torre[]
+  parqueaderos Parqueadero[]
+  residentes   Residente[]
+}
+
+model Usuario {
+  id             Int                    @id @default(autoincrement())
+  email          String                 @unique
+  passwordHash   String
+  nombre         String
+  documento      String?                @unique
+  telefono       String?
+  rol            Role                   @default(RESIDENTE)
+  
+  conjuntoId     Int?
+  conjunto       Conjunto?              @relation(fields: [conjuntoId], references: [id])
+  
+  createdAt      DateTime               @default(now())
+
+  residente      Residente?
+}
+
+model Residente {
+  id           Int           @id @default(autoincrement())
+  nombre       String
+  documento    String?       @unique
+  telefono     String?
+  conjuntoId   Int
+  conjunto     Conjunto      @relation(fields: [conjuntoId], references: [id])
+  
+  usuarioId    Int?          @unique
+  usuario      Usuario?      @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  
+  apartamentos ResidenteApartamento[]
+  createdAt    DateTime            @default(now())
+
+  @@index([nombre])
+  @@index([documento])
+  @@index([telefono])
+}
+
+model Torre {
+  id           Int           @id @default(autoincrement())
+  nombre       String
+  conjuntoId   Int
+  conjunto     Conjunto      @relation(fields: [conjuntoId], references: [id])
+  apartamentos Apartamento[]
+  parqueaderos Parqueadero[]
+  createdAt    DateTime      @default(now())
+
+  @@unique([nombre, conjuntoId])
+  @@index([nombre])
+}
+
+model Apartamento {
+  id           Int                    @id @default(autoincrement())
+  numero       String
+  torreId      Int
+  torre        Torre                  @relation(fields: [torreId], references: [id])
+  createdAt    DateTime               @default(now())
+
+  residentes   ResidenteApartamento[]
+  parqueaderos Parqueadero[]
+
+  @@unique([numero, torreId])
+  @@index([numero])
+}
+
+model ResidenteApartamento {
+  id            Int           @id @default(autoincrement())
+  residenteId   Int
+  apartamentoId Int
+  tipo          TipoResidente
+
+  residente     Residente     @relation(fields: [residenteId], references: [id], onDelete: Cascade)
+  apartamento   Apartamento   @relation(fields: [apartamentoId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime      @default(now())
+
+  @@unique([residenteId, apartamentoId], name: "ResidenteApto_Res_Apto_key")
+}
+
+model Parqueadero {
+  id            Int          @id @default(autoincrement())
+  numero        String
+  tipo          TipoParqueadero @default(SENCILLO)
+  
+  torreId       Int?
+  torre         Torre?          @relation(fields: [torreId], references: [id])
+  
+  apartamentoId Int?
+  apartamento   Apartamento?    @relation(fields: [apartamentoId], references: [id])
+  
+  conjuntoId    Int
+  conjunto      Conjunto        @relation(fields: [conjuntoId], references: [id])
+  createdAt     DateTime        @default(now())
+
+  vehiculos     Vehiculo[]
+
+  @@index([numero])
+}
+
+model Vehiculo {
+  id            Int           @id @default(autoincrement())
+  placa         String        @unique
+  tipo          TipoVehiculo
+  marca         String?
+  color         String?
+  parqueaderoId Int
+  parqueadero   Parqueadero   @relation(fields: [parqueaderoId], references: [id])
+  createdAt     DateTime      @default(now())
+
+  @@index([placa], name: "idx_vehiculo_placa")
+}
+

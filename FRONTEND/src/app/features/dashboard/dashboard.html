@@ -1,0 +1,775 @@
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" *ngIf="user()?.rol !== 'VIGILANTE'">
+    <div class="sidebar-header">
+      <div class="logo-box">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" style="width: 100%; height: 100%;">
+          <rect x="5" y="5" width="90" height="90" rx="22" fill="#10B981" />
+          <rect x="22" y="38" width="22" height="42" rx="3" fill="#FFFFFF" opacity="0.9" />
+          <rect x="27" y="44" width="5" height="5" rx="1" fill="#047857" />
+          <rect x="34" y="44" width="5" height="5" rx="1" fill="#047857" />
+          <rect x="27" y="53" width="5" height="5" rx="1" fill="#047857" />
+          <rect x="34" y="53" width="5" height="5" rx="1" fill="#047857" />
+          <rect x="48" y="22" width="30" height="58" rx="4" fill="#FFFFFF" />
+          <rect x="54" y="28" width="6" height="6" rx="1" fill="#059669" />
+          <rect x="64" y="28" width="6" height="6" rx="1" fill="#059669" />
+          <rect x="54" y="38" width="6" height="6" rx="1" fill="#059669" />
+          <rect x="64" y="38" width="6" height="6" rx="1" fill="#059669" />
+          <rect x="54" y="48" width="6" height="6" rx="1" fill="#059669" />
+          <rect x="64" y="48" width="6" height="6" rx="1" fill="#059669" />
+          <rect x="59" y="68" width="8" height="12" rx="1.5" fill="#34D399" />
+        </svg>
+      </div>
+      <h1 class="brand-text">{{ contextName }}</h1>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <nav class="sidebar-nav">
+      <ng-container *ngIf="user()?.rol === 'SUPERUSUARIO' && !managingConjuntoId()">
+        <a class="nav-item" [class.active]="view === 'dashboard'" (click)="view = 'dashboard'">Panel Principal</a>
+        <a class="nav-item" [class.active]="view === 'conjuntos'" (click)="view = 'conjuntos'">Gestión de Conjuntos</a>
+        <a class="nav-item" [class.active]="view === 'usuarios'" (click)="view = 'usuarios'">Gestión de Usuarios</a>
+      </ng-container>
+
+      <!-- Menú Administrador -->
+      <ng-container *ngIf="user()?.rol === 'ADMINISTRADOR' || managingConjuntoId()">
+        <a class="nav-item" [class.active]="view === 'dashboard'" (click)="view = 'dashboard'">Dashboard</a>
+        <a class="nav-item" [class.active]="view === 'conjuntos'" (click)="view = 'conjuntos'">Mi Conjunto</a>
+        <a class="nav-item" [class.active]="view === 'torres'" (click)="view = 'torres'">Torres</a>
+        <a class="nav-item" [class.active]="view === 'aptos'" (click)="view = 'aptos'">Apartamentos</a>
+        <a class="nav-item" [class.active]="view === 'parqueaderos'" (click)="view = 'parqueaderos'">Parqueaderos</a>
+        <a class="nav-item" [class.active]="view === 'residentes'" (click)="view = 'residentes'">Residentes</a>
+        <a class="nav-item" [class.active]="view === 'vehiculos'" (click)="view = 'vehiculos'">Vehículos</a>
+        <a class="nav-item" [class.active]="view === 'usuarios'" (click)="view = 'usuarios'">Usuarios</a>
+      </ng-container>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="topbar">
+      <div class="greeting">
+        <h2>¡Hola, {{ user()?.nombre }}!</h2>
+        <span class="role-badge">Rol: <span class="badge bg-green-100 text-green-800">{{ user()?.rol }}</span></span>
+      </div>
+      <div style="display: flex; gap: 1rem;">
+        <button class="btn-secondary outline" *ngIf="managingConjuntoId()" (click)="exitManagementMode()">Cerrar Gestión</button>
+        <button class="btn-secondary outline" (click)="logout()">Cerrar Sesión</button>
+      </div>
+    </header>
+
+    <div class="content-area">
+      
+      <!-- VISTA VIGILANTE -->
+      <ng-container *ngIf="view === 'vigilante'">
+        <div class="vigilante-container">
+          <div style="text-align: center; margin-bottom: 2rem;">
+            <h2 style="font-size: 2rem; color: #111827; margin-bottom: 0.5rem;">Control de Acceso</h2>
+            <p style="color: #6B7280;">Busque por Placa, Cédula, Nombre, Parqueadero o Torre</p>
+          </div>
+          
+          <div class="search-box-large" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <input type="text" [(ngModel)]="vigilanteSearchTerm" (keyup.enter)="doVigilanteSearch()" 
+                   placeholder="Ej: ABC-123 o 108525..." 
+                   style="flex: 1; padding: 1.25rem 2rem; font-size: 1.5rem; border: 2px solid #E5E7EB; border-radius: 1rem; text-transform: uppercase;">
+            <button class="btn-primary" (click)="doVigilanteSearch()" style="padding: 1rem 3rem; font-size: 1.25rem; border-radius: 1rem;">Buscar</button>
+          </div>
+
+          <div *ngIf="vigilanteSearching()" style="text-align: center; padding: 2rem; color: #6B7280;">Buscando...</div>
+          
+          <div *ngIf="vigilanteResults() && !vigilanteSearching()">
+            
+            <h3 *ngIf="vigilanteResults()?.apartamentos?.length" style="margin-bottom: 1rem; color: #374151; font-weight: 600;">Perfiles Encontrados</h3>
+            
+            <div *ngIf="vigilanteResults()?.apartamentos?.length === 0" style="text-align: center; color: #6B7280; padding: 2rem;">
+              No se encontraron coincidencias en la base de datos.
+            </div>
+
+            <div *ngFor="let apto of vigilanteResults()?.apartamentos" class="result-card">
+              
+              <!-- Encabezado de la Tarjeta (Apto y Torre) -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #E5E7EB;">
+                <div>
+                  <h4 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #111827;">Torre {{ apto.torre?.nombre }}</h4>
+                  <p style="margin: 0; color: #6B7280; font-size: 1.1rem;">Apartamento {{ apto.numero }}</p>
+                </div>
+                <span class="badge bg-green-100 text-green-800" style="font-size: 1rem; padding: 0.5rem 1rem;">VERIFICADO</span>
+              </div>
+
+              <!-- Sección de Residentes -->
+              <div style="margin-bottom: 1.5rem;">
+                <p style="margin: 0 0 0.5rem 0; color: #4B5563; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Residentes Autorizados</p>
+                <div *ngIf="apto.residentes?.length === 0" style="color: #9CA3AF; font-size: 0.9rem;">Ningún residente registrado.</div>
+                <div *ngFor="let res of apto.residentes" style="background: #F9FAFB; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 600; color: #1F2937;">{{ res.nombre }}</span>
+                  <div style="text-align: right; font-size: 0.85rem; color: #6B7280;">
+                    <span *ngIf="res.cedula">CC: {{ res.cedula }}</span><br *ngIf="res.cedula && res.telefono">
+                    <span *ngIf="res.telefono">TEL: {{ res.telefono }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sección de Vehículos y Parqueaderos -->
+              <div>
+                <p style="margin: 0 0 0.5rem 0; color: #4B5563; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Vehículos y Parqueaderos</p>
+                <div *ngIf="apto.parqueaderos?.length === 0" style="color: #9CA3AF; font-size: 0.9rem;">Sin parqueaderos asignados.</div>
+                
+                <div *ngFor="let parq of apto.parqueaderos" style="background: #EEF2FF; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem; border: 1px solid #E0E7FF;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 700; color: #3730A3;">Parqueadero #{{ parq.numero }}</span>
+                    <span class="badge bg-indigo-100 text-indigo-800">{{ parq.tipo }}</span>
+                  </div>
+                  
+                  <div *ngIf="parq.vehiculos?.length === 0" style="color: #6366F1; font-size: 0.85rem;">(Parqueadero Vacío)</div>
+                  <div *ngFor="let v of parq.vehiculos" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                    <span style="background: white; border: 1px solid #C7D2FE; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-weight: 700; color: #312E81;">{{ v.placa }}</span>
+                    <span style="color: #4F46E5; font-size: 0.9rem;">{{ v.tipo }} - {{ v.marca || 'N/A' }} ({{ v.color || 'N/A' }})</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="view === 'dashboard'">
+        <div class="dashboard-stats" *ngIf="stats() as st">
+          <ng-container *ngIf="st.isSuper">
+            <div class="stat-card"><h3>Total Conjuntos</h3><p>{{ st.conjuntos }}</p></div>
+            <div class="stat-card"><h3>Administradores</h3><p>{{ st.administradores }}</p></div>
+            <div class="stat-card"><h3>Total Residentes</h3><p>{{ st.residentes }}</p></div>
+            <div class="stat-card"><h3>Total Vehículos</h3><p>{{ st.vehiculos }}</p></div>
+          </ng-container>
+          <ng-container *ngIf="!st.isSuper">
+            <div class="stat-card"><h3>Torres</h3><p>{{ st.torres }}</p></div>
+            <div class="stat-card"><h3>Apartamentos</h3><p>{{ st.aptos }}</p></div>
+            <div class="stat-card"><h3>Residentes</h3><p>{{ st.residentes }}</p></div>
+            <div class="stat-card"><h3>Parqueaderos</h3><p>{{ st.parqueaderos }}</p></div>
+            <div class="stat-card"><h3>Vehículos</h3><p>{{ st.vehiculos }}</p></div>
+          </ng-container>
+        </div>
+
+        <div class="crud-container" *ngIf="!(stats().isSuper)">
+           <div class="crud-header">
+             <h2>Dashboard General</h2>
+               <div class="header-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                 <input type="text" class="search-input" placeholder="Buscar en tabla..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+                 <button class="btn-primary btn-wizard" (click)="openWizard()">+ Asistente Rápido</button>
+                 <button class="btn-primary btn-excel" (click)="exportToExcel()" title="Exportar Todo">Exportar</button>
+                 
+                 <!-- Nuevos botones de importación -->
+                 <button class="btn-secondary" style="border: 1px solid #10B981; color: #10B981; font-weight: 600;" (click)="downloadTemplate()" title="Descargar plantilla de Excel para llenar datos">Plantilla</button>
+                 <input type="file" #fileInput (change)="importExcel($event)" style="display: none;" accept=".csv">
+                 <button class="btn-primary" style="background: #059669;" (click)="fileInput.click()" title="Subir archivo Excel y procesar datos">Subir Excel</button>
+               </div>
+           </div>
+           <table class="modern-table excel-table">
+             <thead>
+               <tr><th>APTO</th><th>TORRE</th><th>RESIDENTE</th><th>PARQUEADERO</th><th>VEHÍCULOS</th><th>ACCIONES RÁPIDAS</th></tr>
+             </thead>
+             <tbody>
+               <tr *ngFor="let row of masterData()">
+                 <td><strong>{{ row.aptoNumero }}</strong></td>
+                 <td>{{ row.torreNombre }}</td>
+                   <td>
+                     <div *ngFor="let res of row.vinculados" style="display: flex; flex-direction: column; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                          <ng-container *ngIf="editingCell()?.id === 'res-'+res.id && editingCell()?.field === 'nombre'; else viewResName">
+                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'nombre')" (keyup.enter)="saveEdit('residente', res.id, 'nombre')" class="inline-edit-input" autofocus>
+                          </ng-container>
+                          <ng-template #viewResName>
+                            <span class="editable-text" (click)="startEdit('res-'+res.id, 'nombre', res.nombre)">{{ res.nombre }} <span class="edit-icon">✎</span></span>
+                          </ng-template>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #6B7280; display: flex; gap: 4px; align-items: center; margin-top: 2px;">
+                          C.C: 
+                          <ng-container *ngIf="editingCell()?.id === 'res-'+res.id && editingCell()?.field === 'documento'; else viewResDoc">
+                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'documento')" (keyup.enter)="saveEdit('residente', res.id, 'documento')" class="inline-edit-input small">
+                          </ng-container>
+                          <ng-template #viewResDoc>
+                            <span class="editable-text small" (click)="startEdit('res-'+res.id, 'documento', res.documento || '')">{{ res.documento || 'No asig' }}</span>
+                          </ng-template>
+                          | Tel: 
+                          <ng-container *ngIf="editingCell()?.id === 'res-'+res.id && editingCell()?.field === 'telefono'; else viewResTel">
+                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('residente', res.id, 'telefono')" (keyup.enter)="saveEdit('residente', res.id, 'telefono')" class="inline-edit-input small">
+                          </ng-container>
+                          <ng-template #viewResTel>
+                            <span class="editable-text small" (click)="startEdit('res-'+res.id, 'telefono', res.telefono || '')">{{ res.telefono || 'No asig' }}</span>
+                          </ng-template>
+                        </div>
+                     </div>
+                     <div *ngIf="row.vinculados.length === 0" style="color: #9CA3AF; font-weight: 500;">Desocupado</div>
+                   </td>
+                   <td>
+                     <div *ngFor="let p of row.parqs" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="display: flex; align-items: center; gap: 0.5rem;">
+                          <ng-container *ngIf="editingCell()?.id === 'parq-'+p.id && editingCell()?.field === 'numero'; else viewParq">
+                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('parqueadero', p.id, 'numero')" (keyup.enter)="saveEdit('parqueadero', p.id, 'numero')" class="inline-edit-input" autofocus>
+                          </ng-container>
+                          <ng-template #viewParq>
+                            <span class="editable-text" (click)="startEdit('parq-'+p.id, 'numero', p.numero)">{{ p.numero }} <span class="edit-icon">✎</span></span>
+                          </ng-template>
+                          <span class="badge bg-green-100 text-green-800" style="font-size: 0.65rem; border: 1px solid #A7F3D0; padding: 2px 6px;">{{ p.tipo }}</span>
+                        </span>
+                     </div>
+                     <div *ngIf="row.parqs.length === 0" style="color: #D1D5DB; font-weight: 500;">No Asignado</div>
+                   </td>
+                   <td>
+                     <div *ngFor="let v of row.vehs" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="display: flex; align-items: center; gap: 0.25rem;">
+                          <ng-container *ngIf="editingCell()?.id === 'veh-'+v.id && editingCell()?.field === 'placa'; else viewVeh">
+                            <input type="text" [value]="editingCell()?.value" (input)="editingCell()!.value = $any($event.target).value" (blur)="saveEdit('vehiculo', v.id, 'placa')" (keyup.enter)="saveEdit('vehiculo', v.id, 'placa')" class="inline-edit-input" autofocus>
+                          </ng-container>
+                          <ng-template #viewVeh>
+                            <span class="editable-text" style="font-weight: 700;" (click)="startEdit('veh-'+v.id, 'placa', v.placa)">{{ v.placa }} <span class="edit-icon">✎</span></span>
+                          </ng-template>
+                          <span style="font-size: 0.7rem; color: #6B7280;">({{ v.tipo || 'CARRO' }})</span>
+                        </span>
+                     </div>
+                     <div *ngIf="row.vehs.length === 0" style="color: #D1D5DB; font-weight: 500;">Ninguno</div>
+                   </td>
+                 <td>
+                   <div class="table-actions">
+                     <button class="btn-action edit" (click)="openModal('apto', row.aptoObj)" style="padding: 0.25rem 0.75rem; border-radius: 0.25rem;">Apto</button>
+                     <button class="btn-action primary" style="background-color: #ECFDF5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 0.25rem;" *ngIf="row.resObj" (click)="openModal('residente', row.resObj)">Residente</button>
+                     <button class="btn-action primary" style="background-color: #ECFDF5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 0.25rem;" *ngIf="!row.resObj" (click)="openResidenteModalForApto(row.aptoId)">+ Residente</button>
+                     <button class="btn-action primary" style="background-color: #ECFDF5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 0.25rem;" *ngIf="row.parqObj" (click)="openModal('parqueadero', row.parqObj)">Parqueadero</button>
+                     <button class="btn-action primary" style="background-color: #ECFDF5; color: #059669; padding: 0.25rem 0.75rem; border-radius: 0.25rem;" *ngIf="!row.parqObj" (click)="openModal('parqueadero')">+ Parqueadero</button>
+                   </div>
+                 </td>
+               </tr>
+             </tbody>
+           </table>
+        </div>
+      </ng-container>
+
+      <!-- OTROS VISTAS -->
+      <ng-container *ngIf="view === 'torres'">
+        <div class="crud-container">
+          <div class="crud-header">
+            <h2>Gestión de Torres</h2>
+            <div class="header-actions">
+              <input type="text" class="search-input" placeholder="Buscar torre..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+              <button class="btn-primary" (click)="openModal('torre')">+ Nueva Torre</button>
+            </div>
+          </div>
+          <table class="modern-table">
+            <thead>
+              <tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of filteredTorres">
+                <td>{{ t.id }}</td>
+                <td><strong>{{ t.nombre }}</strong></td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn-action edit" (click)="openModal('torre', t)">Editar</button>
+                    <button class="btn-action delete" (click)="deleteTorre(t.id)">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="view === 'aptos'">
+        <div class="crud-container">
+          <div class="crud-header">
+            <h2>Gestión de Apartamentos</h2>
+            <div class="header-actions">
+              <input type="text" class="search-input" placeholder="Buscar apartamento..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+              <button class="btn-primary" (click)="openModal('apto')">+ Nuevo Apartamento</button>
+            </div>
+          </div>
+          <table class="modern-table">
+            <thead>
+              <tr><th>Número</th><th>Torre</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let a of filteredAptos">
+                <td><strong>{{ a.numero }}</strong></td>
+                <td>{{ getTorreName(a.torreId) }}</td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn-action edit" (click)="openModal('apto', a)">Editar</button>
+                    <button class="btn-action delete" (click)="deleteApto(a.id)">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="view === 'parqueaderos'">
+        <div class="crud-container">
+          <div class="crud-header">
+            <h2>Gestión de Parqueaderos</h2>
+            <div class="header-actions">
+              <input type="text" class="search-input" placeholder="Buscar parqueadero..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+              <button class="btn-primary" (click)="openModal('parqueadero')">+ Nuevo Parqueadero</button>
+            </div>
+          </div>
+          <table class="modern-table">
+            <thead>
+              <tr><th>Número</th><th>Tipo</th><th>Apartamento Vinculado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of filteredParqueaderos">
+                <td><strong>#{{ p.numero }}</strong></td>
+                <td><span class="badge bg-gray-100 text-gray-800">{{ p.tipo }}</span></td>
+                <td>{{ getAptoName(p.apartamentoId) }}</td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn-action edit" (click)="openModal('parqueadero', p)">Editar</button>
+                    <button class="btn-action delete" (click)="deleteParqueadero(p.id)">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="view === 'usuarios'">
+        <div class="crud-container">
+          <div class="crud-header">
+            <h2>Gestión de Usuarios</h2>
+            <div class="header-actions">
+              <input type="text" class="search-input" placeholder="Buscar usuario..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+              <button class="btn-primary" (click)="openModal('usuario')">+ Nuevo Usuario</button>
+            </div>
+          </div>
+          <table class="modern-table">
+            <thead>
+              <tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let u of usuarios()">
+                <td><strong>{{ u.nombre }}</strong></td>
+                <td>{{ u.email }}</td>
+                <td><span class="badge bg-blue-100 text-blue-800">{{ u.rol }}</span></td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn-action edit" (click)="openModal('usuario', u)">Editar</button>
+                    <button class="btn-action delete" (click)="deleteUsuario(u.id)">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="view === 'conjuntos'">
+        <div class="crud-container">
+          <div class="crud-header">
+            <h2>{{ user()?.rol === 'SUPERUSUARIO' ? 'Gestión de Conjuntos' : 'Mi Conjunto' }}</h2>
+            <div class="header-actions">
+              <input type="text" class="search-input" placeholder="Buscar conjunto..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+              <button class="btn-primary" *ngIf="user()?.rol === 'SUPERUSUARIO'" (click)="openModal('conjunto')">+ Nuevo Conjunto</button>
+            </div>
+          </div>
+          <table class="glass-table" style="width: 100%;">
+            <thead>
+              <tr>
+                 <th>Conjunto</th>
+                 <th>Ubicación</th>
+                 <th>Contacto</th>
+                 <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of filteredConjuntos">
+                <td>
+                  <div class="conjunto-cell">
+                    <div>
+                      <div class="conjunto-name">{{ c.nombre }}</div>
+                      <div class="conjunto-id">ID: {{ c.id }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="location-text">{{ c.direccion || 'Sin dirección' }}</div>
+                </td>
+                <td>
+                  <div class="contact-info">
+                    <div class="contact-name">{{ c.contacto || 'No registrado' }}</div>
+                    <div class="contact-phone" *ngIf="c.telefono">{{ c.telefono }}</div>
+                  </div>
+                </td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn-action primary" *ngIf="user()?.rol === 'SUPERUSUARIO'" (click)="manageConjunto(c.id)" style="background-color: #ECFDF5; color: #059669; font-weight: bold; border-radius: 8px;">Administrar</button>
+                    <button class="btn-action edit" (click)="openModal('conjunto', c)" style="border-radius: 8px;">Editar</button>
+                    <button class="btn-action delete" *ngIf="user()?.rol === 'SUPERUSUARIO'" (click)="deleteConjunto(c.id)" style="border-radius: 8px;">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="view === 'vehiculos'">
+        <div class="crud-container">
+          <div class="crud-header">
+            <h2>Gestión de Vehículos</h2>
+            <div class="header-actions">
+              <input type="text" class="search-input" placeholder="Buscar placa..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+              <button class="btn-primary" (click)="openModal('vehiculo')">+ Nuevo Vehículo</button>
+            </div>
+          </div>
+          <table class="modern-table">
+            <thead>
+              <tr><th>Placa</th><th>Tipo</th><th>Marca / Color</th><th>Parqueadero</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let veh of filteredVehiculos">
+                <td><strong>{{ veh.placa }}</strong></td>
+                <td><span class="badge bg-gray-100 text-gray-800">{{ veh.tipo }}</span></td>
+                <td>{{ veh.marca || 'N/A' }} / {{ veh.color || 'N/A' }}</td>
+                <td>#{{ veh.parqueadero?.numero }}</td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn-action edit" (click)="openModal('vehiculo', veh)">Editar</button>
+                    <button class="btn-action delete" (click)="deleteVehiculo(veh.id)">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="view === 'residentes'">
+        <div class="crud-container">
+          <div class="crud-header">
+            <h2>Gestión de Residentes</h2>
+            <div class="header-actions">
+              <input type="text" class="search-input" placeholder="Buscar residente..." [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+              <button class="btn-primary" (click)="openModal('residente')">+ Nuevo Residente</button>
+            </div>
+          </div>
+          <table class="modern-table">
+            <thead>
+              <tr><th>Nombre</th><th>Cédula</th><th>Contacto</th><th>Ubicación</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let res of filteredResidentes">
+                <td>
+                  <div style="font-weight: 600;">{{ res.nombre }}</div>
+                </td>
+                <td><span class="badge bg-blue-100 text-blue-800" style="font-size: 0.75rem;">{{ res.cedula || 'N/A' }}</span></td>
+                <td>{{ res.telefono || 'N/A' }}</td>
+                <td>
+                  <div *ngFor="let a of res.apartamentos">T: {{ a.apartamento?.torre?.nombre }}, Apto: {{ a.apartamento?.numero }}</div>
+                </td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn-action edit" (click)="openModal('residente', res)">Editar</button>
+                    <button class="btn-action delete" (click)="deleteResidente(res.id)">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+      
+    </div>
+  </main>
+</div>
+
+<!-- MODALS -->
+<app-modal [(isOpen)]="isVehiculoModalOpen" [title]="editingId ? 'Editar Vehículo' : 'Nuevo Vehículo'">
+  <form [formGroup]="vehiculoForm" (ngSubmit)="saveVehiculo()">
+    <div class="input-group">
+      <label class="input-label">Placa *</label>
+      <input type="text" class="input-field" formControlName="placa" style="text-transform: uppercase;">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Tipo *</label>
+      <select class="input-field" formControlName="tipo">
+        <option value="CARRO">Carro</option>
+        <option value="MOTO">Moto</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Marca (Opcional)</label>
+      <input type="text" class="input-field" formControlName="marca">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Color (Opcional)</label>
+      <input type="text" class="input-field" formControlName="color">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Asignar a Parqueadero *</label>
+      <select class="input-field" formControlName="parqueaderoId">
+        <option [ngValue]="null">-- Seleccione --</option>
+        <option *ngFor="let parq of parqueaderos()" [ngValue]="parq.id">#{{ parq.numero }}</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isVehiculoModalOpen = false">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="vehiculoForm.invalid">Guardar Vehículo</button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal [(isOpen)]="isResidenteModalOpen" [title]="editingId ? 'Editar Residente' : 'Nuevo Residente'">
+  <form [formGroup]="residenteForm" (ngSubmit)="saveResidente()">
+    <div class="input-group">
+      <label class="input-label">Nombre Completo</label>
+      <input type="text" class="input-field" formControlName="nombre">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Cédula</label>
+      <input type="text" class="input-field" formControlName="cedula">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Teléfono</label>
+      <input type="text" class="input-field" formControlName="telefono">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Tipo de Residente</label>
+      <select class="input-field" formControlName="tipoResidente">
+        <option value="PROPIETARIO">Propietario</option>
+        <option value="ARRENDATARIO">Arrendatario</option>
+        <option value="FAMILIAR">Familiar</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Asignar a Apartamento</label>
+      <select class="input-field" formControlName="apartamentoId">
+        <option [ngValue]="null">Ninguno</option>
+        <option *ngFor="let apto of aptos()" [ngValue]="apto.id">Torre {{ apto.torreId }} - Apto {{ apto.numero }}</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isResidenteModalOpen = false">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="residenteForm.invalid">Guardar Residente</button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal [(isOpen)]="isAptoModalOpen" [title]="editingId ? 'Editar Apartamento' : 'Nuevo Apartamento'">
+  <form [formGroup]="aptoForm" (ngSubmit)="saveApto()">
+    <div class="input-group">
+      <label class="input-label">Número de Apartamento</label>
+      <input type="text" class="input-field" formControlName="numero">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Torre</label>
+      <select class="input-field" formControlName="torreId">
+        <option *ngFor="let t of filteredTorres" [ngValue]="t.id">{{ t.nombre }}</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isAptoModalOpen = false">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="aptoForm.invalid">Guardar</button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal [(isOpen)]="isTorreModalOpen" [title]="editingId ? 'Editar Torre' : 'Nueva Torre'">
+  <form [formGroup]="torreForm" (ngSubmit)="saveTorre()">
+    <div class="input-group">
+      <label class="input-label">Nombre o Número de Torre</label>
+      <input type="text" class="input-field" formControlName="nombre">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isTorreModalOpen = false">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="torreForm.invalid">Guardar</button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal [(isOpen)]="isParqueaderoModalOpen" [title]="editingId ? 'Editar Parqueadero' : 'Nuevo Parqueadero'">
+  <form [formGroup]="parqueaderoForm" (ngSubmit)="saveParqueadero()">
+    <div class="input-group">
+      <label class="input-label">Número</label>
+      <input type="text" class="input-field" formControlName="numero">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Vincular a Apartamento (Opcional)</label>
+      <select class="input-field" formControlName="apartamentoId">
+        <option [ngValue]="null">Ninguno</option>
+        <option *ngFor="let apto of aptos()" [ngValue]="apto.id">Apto {{ apto.numero }}</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isParqueaderoModalOpen = false">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="parqueaderoForm.invalid">Guardar</button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal [(isOpen)]="isConjuntoModalOpen" [title]="editingId ? 'Editar Conjunto' : 'Nuevo Conjunto'">
+  <form [formGroup]="conjuntoForm" (ngSubmit)="saveConjunto()">
+    <div class="input-group">
+      <label class="input-label">Nombre</label>
+      <input type="text" class="input-field" formControlName="nombre">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Dirección</label>
+      <input type="text" class="input-field" formControlName="direccion">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Teléfono</label>
+      <input type="text" class="input-field" formControlName="telefono">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Contacto (Representante)</label>
+      <input type="text" class="input-field" formControlName="contacto">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isConjuntoModalOpen = false">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="conjuntoForm.invalid">Guardar</button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal [(isOpen)]="isUsuarioModalOpen" [title]="editingId ? 'Editar Usuario' : 'Nuevo Usuario'">
+  <form [formGroup]="usuarioForm" (ngSubmit)="saveUsuario()">
+    <div class="input-group">
+      <label class="input-label">Nombre</label>
+      <input type="text" class="input-field" formControlName="nombre">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Email</label>
+      <input type="email" class="input-field" formControlName="email">
+    </div>
+    <div class="input-group" *ngIf="!editingId">
+      <label class="input-label">Contraseña</label>
+      <input type="password" class="input-field" formControlName="password">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Rol</label>
+      <select class="input-field" formControlName="rol">
+        <option value="ADMINISTRADOR">Administrador</option>
+        <option value="VIGILANTE">Vigilante</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="isUsuarioModalOpen = false">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="usuarioForm.invalid">Guardar</button>
+    </div>
+  </form>
+</app-modal>
+
+
+<!-- WIZARD PASO A PASO -->
+<app-modal [(isOpen)]="isWizardOpen" title="Asistente Rápido de Creación">
+  <form [formGroup]="wizardForm" (ngSubmit)="submitWizard()">
+    
+    <!-- Paso 1: Torre y Apartamento -->
+    <div *ngIf="wizardStep === 1">
+      <h3 style="margin-bottom: 1rem; color: #111827;">Paso 1: Torre y Apartamento</h3>
+      <div class="input-group">
+        <label class="input-label">Seleccionar Torre Existente</label>
+        <select class="input-field" formControlName="torreId">
+          <option [ngValue]="null">-- Crear Nueva Torre --</option>
+          <option *ngFor="let t of currentTorres" [ngValue]="t.id">{{ t.nombre }}</option>
+        </select>
+      </div>
+      <div class="input-group" *ngIf="!wizardForm.value.torreId">
+        <label class="input-label">Nombre de la Nueva Torre *</label>
+        <input type="text" class="input-field" formControlName="nuevaTorreNombre">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Número del Nuevo Apartamento *</label>
+        <input type="text" class="input-field" formControlName="aptoNumero">
+      </div>
+    </div>
+
+    <!-- Paso 2: Parqueadero -->
+    <div *ngIf="wizardStep === 2">
+      <h3 style="margin-bottom: 1rem; color: #111827;">Paso 2: Parqueadero (Opcional)</h3>
+      <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+        <input type="checkbox" formControlName="crearParqueadero"> Crear y vincular un parqueadero
+      </label>
+      <div *ngIf="wizardForm.value.crearParqueadero">
+        <div class="input-group">
+          <label class="input-label">Número de Parqueadero *</label>
+          <input type="text" class="input-field" formControlName="parqueaderoNumero">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Tipo *</label>
+          <select class="input-field" formControlName="parqueaderoTipo">
+            <option value="SENCILLO">Sencillo</option>
+            <option value="DOBLE">Doble</option>
+            <option value="MOTO">Moto</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 3: Vehículo -->
+    <div *ngIf="wizardStep === 3">
+      <h3 style="margin-bottom: 1rem; color: #111827;">Paso 3: Vehículo (Opcional)</h3>
+      <div *ngIf="!wizardForm.value.crearParqueadero" style="color: #6B7280; font-size: 0.875rem;">
+        Debe crear un parqueadero (Paso 2) para poder asignar un vehículo.
+      </div>
+      <div *ngIf="wizardForm.value.crearParqueadero">
+        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <input type="checkbox" formControlName="crearVehiculo"> Registrar un vehículo
+        </label>
+        <div *ngIf="wizardForm.value.crearVehiculo">
+          <div class="input-group">
+            <label class="input-label">Placa *</label>
+            <input type="text" class="input-field" formControlName="vehiculoPlaca">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Tipo *</label>
+            <select class="input-field" formControlName="vehiculoTipo">
+              <option value="CARRO">Carro</option>
+              <option value="MOTO">Moto</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 4: Residente -->
+    <div *ngIf="wizardStep === 4">
+      <h3 style="margin-bottom: 1rem; color: #111827;">Paso 4: Residente (Opcional)</h3>
+      <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+        <input type="checkbox" formControlName="crearResidente"> Asignar Residente / Propietario
+      </label>
+      <div *ngIf="wizardForm.value.crearResidente">
+        <div class="input-group">
+          <label class="input-label">Nombre Completo *</label>
+          <input type="text" class="input-field" formControlName="residenteNombre">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Cédula</label>
+          <input type="text" class="input-field" formControlName="residenteCedula">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Teléfono</label>
+          <input type="text" class="input-field" formControlName="residenteTelefono">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Tipo de Residente</label>
+          <select class="input-field" formControlName="residenteTipo">
+            <option value="PROPIETARIO">Propietario</option>
+            <option value="ARRENDATARIO">Arrendatario</option>
+            <option value="FAMILIAR">Familiar</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="justify-content: space-between;">
+      <button type="button" class="btn-secondary" (click)="prevWizardStep()" *ngIf="wizardStep > 1">← Atrás</button>
+      <div style="flex: 1"></div>
+      <button type="button" class="btn-primary" (click)="nextWizardStep()" *ngIf="wizardStep < 4">Siguiente →</button>
+      <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);" *ngIf="wizardStep === 4" [disabled]="wizardLoading">
+        {{ wizardLoading ? 'Creando...' : '¡Completar y Guardar Todo!' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

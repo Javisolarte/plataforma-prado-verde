@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: prado_verde_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: prado_verde_password_prod_2026
+      POSTGRES_DB: prado_verde_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prado_verde_backend
+    restart: always
+    environment:
+      PORT: 3000
+      DATABASE_URL: "postgresql://postgres:prado_verde_password_prod_2026@database:5432/prado_verde_db?schema=public"
+      JWT_SECRET: "prado_verde_jwt_secret_key_prod_2026_super_secure"
+    ports:
+      - "3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: prado_verde_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
